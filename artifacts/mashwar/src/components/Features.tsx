@@ -106,7 +106,7 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="relative px-8 md:px-16 pt-10 pb-10">
+          <div className="relative px-8 md:px-16 pt-10 pb-10 pr-44 md:pr-56">
             {/* Text */}
             <div className="text-right">
               <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
