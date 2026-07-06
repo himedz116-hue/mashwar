@@ -106,8 +106,18 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="flex items-end justify-between px-8 md:px-16 pt-10 gap-6">
-            {/* Building B — right side (first in RTL) */}
+          <div className="flex items-end justify-end px-8 md:px-16 pt-10 gap-8">
+            {/* Text — right next to building */}
+            <div className="text-right pb-10">
+              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
+                نصل لكل مكان
+              </div>
+              <p className="text-[#000201]/55 text-base md:text-lg max-w-sm">
+                سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
+              </p>
+            </div>
+
+            {/* Building B — right side */}
             <div className="flex-shrink-0">
               <img
                 src="/city-building-b.svg"
@@ -115,16 +125,6 @@ export default function Features() {
                 aria-hidden="true"
                 className="h-40 md:h-52 w-auto"
               />
-            </div>
-
-            {/* Center text */}
-            <div className="flex-1 text-center pb-10">
-              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
-                نصل لكل مكان
-              </div>
-              <p className="text-[#000201]/55 text-base md:text-lg max-w-sm mx-auto">
-                سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
-              </p>
             </div>
           </div>
         </motion.div>
