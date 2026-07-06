@@ -11,7 +11,7 @@ const customers = [
       </svg>
     ),
     num: "٦٠٪",
-    numLabel: "من مستخدمينا"
+    numLabel: "من مستخدمينا",
   },
   {
     title: "أصحاب المتاجر",
@@ -23,7 +23,7 @@ const customers = [
       </svg>
     ),
     num: "٢٥٪",
-    numLabel: "تجار ومتاجر"
+    numLabel: "تجار ومتاجر",
   },
   {
     title: "شركات المقاولات",
@@ -35,7 +35,7 @@ const customers = [
       </svg>
     ),
     num: "١٠٪",
-    numLabel: "شركات ومقاولون"
+    numLabel: "شركات ومقاولون",
   },
   {
     title: "المستودعات",
@@ -47,27 +47,22 @@ const customers = [
       </svg>
     ),
     num: "٥٪",
-    numLabel: "مستودعات وشركات توزيع"
+    numLabel: "مستودعات وشركات توزيع",
   },
 ];
 
 export default function TargetCustomers() {
   return (
-    <section id="customers" className="py-24 bg-[#000201] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: "radial-gradient(circle, #99C169 1px, transparent 1px)",
-          backgroundSize: "40px 40px"
-        }}
-      />
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#679632]/8 blur-[100px] rounded-full pointer-events-none" />
+    <section id="customers" className="py-24 bg-white relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#679632]/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#679632]/20 to-transparent" />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row gap-16 items-start">
           {/* Left text */}
           <div className="lg:w-2/5">
             <motion.span
-              className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/20 text-[#99C169] text-sm font-bold mb-6 border border-[#679632]/20"
+              className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-6 border border-[#679632]/20"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
@@ -75,7 +70,7 @@ export default function TargetCustomers() {
               فئاتنا المستهدفة
             </motion.span>
             <motion.h2
-              className="text-4xl md:text-5xl font-heading font-black text-white mb-6 leading-tight"
+              className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-6 leading-tight"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -83,10 +78,10 @@ export default function TargetCustomers() {
             >
               الكل يعتمد
               <br />
-              <span className="text-[#99C169]">على مشوار</span>
+              <span className="text-[#679632]">على مشوار</span>
             </motion.h2>
             <motion.p
-              className="text-white/50 text-lg leading-relaxed mb-8"
+              className="text-[#000201]/55 text-lg leading-relaxed mb-8"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
@@ -95,7 +90,7 @@ export default function TargetCustomers() {
               من مشوار صغير لنقل أريكة، إلى أسطول لنقل مواد بناء — المنصة مرنة لتلبية جميع الاحتياجات.
             </motion.p>
             <motion.div
-              className="w-16 h-1 bg-[#679632] rounded-full"
+              className="w-16 h-1.5 bg-[#679632] rounded-full"
               initial={{ scaleX: 0, originX: 1 }}
               whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
@@ -113,19 +108,19 @@ export default function TargetCustomers() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="bg-[#0D1A0A] border border-[#679632]/20 rounded-2xl p-6 hover:border-[#679632]/50 transition-all duration-300 group"
+                className="bg-[#F7FAF4] border border-[#679632]/15 rounded-2xl p-6 hover:border-[#679632]/40 hover:bg-[#EFF7E8] hover:shadow-lg hover:shadow-[#679632]/10 transition-all duration-300 group"
               >
                 <div className="flex items-start justify-between mb-5">
-                  <div className="w-14 h-14 rounded-xl bg-[#679632]/15 text-[#99C169] flex items-center justify-center group-hover:bg-[#679632]/25 transition-colors">
+                  <div className="w-14 h-14 rounded-xl bg-[#679632]/10 text-[#679632] flex items-center justify-center group-hover:bg-[#679632] group-hover:text-white transition-all duration-300">
                     {item.icon}
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-heading font-black text-[#99C169]">{item.num}</div>
-                    <div className="text-white/30 text-xs">{item.numLabel}</div>
+                    <div className="text-2xl font-heading font-black text-[#679632]">{item.num}</div>
+                    <div className="text-[#000201]/40 text-xs">{item.numLabel}</div>
                   </div>
                 </div>
-                <h3 className="text-xl font-heading font-black text-white mb-2">{item.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-heading font-black text-[#000201] mb-2">{item.title}</h3>
+                <p className="text-[#000201]/55 text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>

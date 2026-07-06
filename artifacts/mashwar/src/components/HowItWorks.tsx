@@ -7,8 +7,8 @@ const steps = [
     desc: "افتح التطبيق وحدد نقطة الاستلام والتسليم على الخريطة التفاعلية بدقة متناهية.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#99C169" fillOpacity="0.3" stroke="#99C169" strokeWidth="1.5"/>
-        <circle cx="12" cy="9" r="2.5" fill="#99C169"/>
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5"/>
+        <circle cx="12" cy="9" r="2.5" fill="#679632"/>
       </svg>
     ),
   },
@@ -18,10 +18,10 @@ const steps = [
     desc: "حدد نوع المركبة المناسب لحمولتك وشاهد السعر التقديري مباشرة قبل التأكيد.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path d="M1 17l2-8h18l2 8H1z" fill="#99C169" fillOpacity="0.3" stroke="#99C169" strokeWidth="1.5" strokeLinejoin="round"/>
-        <circle cx="6" cy="17" r="2" fill="#99C169"/>
-        <circle cx="18" cy="17" r="2" fill="#99C169"/>
-        <path d="M5 9V5h14v4" stroke="#99C169" strokeWidth="1.5"/>
+        <path d="M1 17l2-8h18l2 8H1z" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5" strokeLinejoin="round"/>
+        <circle cx="6" cy="17" r="2" fill="#679632"/>
+        <circle cx="18" cy="17" r="2" fill="#679632"/>
+        <path d="M5 9V5h14v4" stroke="#679632" strokeWidth="1.5"/>
       </svg>
     ),
   },
@@ -31,8 +31,8 @@ const steps = [
     desc: "تابع مسار السائق لحظة بلحظة حتى وصول شحنتك بسلام إلى وجهتها.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#99C169" fillOpacity="0.3" stroke="#99C169" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#99C169" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#679632" strokeWidth="1.5" strokeLinejoin="round"/>
       </svg>
     ),
   },
@@ -40,23 +40,15 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-[#000201] relative overflow-hidden">
-      {/* Subtle grid */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#99C169 1px, transparent 1px), linear-gradient(90deg, #99C169 1px, transparent 1px)",
-          backgroundSize: "80px 80px",
-        }}
-      />
-      {/* Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#679632]/10 blur-[100px] rounded-full pointer-events-none" />
+    <section id="how-it-works" className="py-24 bg-[#EFF7E8] relative overflow-hidden">
+      {/* Decorative circles */}
+      <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full bg-[#99C169]/20 blur-[80px] translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#679632]/15 blur-[70px] -translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="text-center mb-16">
           <motion.span
-            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/20 text-[#99C169] text-sm font-bold mb-4 border border-[#679632]/20"
+            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/15 text-[#679632] text-sm font-bold mb-4 border border-[#679632]/20"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -64,17 +56,17 @@ export default function HowItWorks() {
             سهل وسريع
           </motion.span>
           <motion.h2
-            className="text-4xl md:text-5xl font-heading font-black text-white mb-4"
+            className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
             ثلاث خطوات فقط
-            <span className="text-[#99C169]"> للنقل</span>
+            <span className="text-[#679632]"> للنقل</span>
           </motion.h2>
           <motion.p
-            className="text-white/50 text-lg max-w-xl mx-auto"
+            className="text-[#000201]/55 text-lg max-w-xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -86,7 +78,7 @@ export default function HowItWorks() {
 
         <div className="relative">
           {/* Connecting dashed line */}
-          <div className="hidden md:block absolute top-14 right-[20%] left-[20%] h-px border-t-2 border-dashed border-[#99C169]/20 z-0" />
+          <div className="hidden md:block absolute top-14 right-[20%] left-[20%] h-px border-t-2 border-dashed border-[#679632]/30 z-0" />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((step, i) => (
@@ -99,13 +91,13 @@ export default function HowItWorks() {
                 className="relative z-10 flex flex-col items-center text-center"
               >
                 {/* Step circle */}
-                <div className="w-28 h-28 rounded-full bg-[#0D1A0A] border-2 border-[#679632]/40 flex flex-col items-center justify-center mb-6 shadow-xl shadow-[#679632]/10">
+                <div className="w-28 h-28 rounded-full bg-white border-2 border-[#679632]/30 flex flex-col items-center justify-center mb-6 shadow-lg shadow-[#679632]/10">
                   <div className="mb-1">{step.icon}</div>
-                  <span className="text-[#99C169] text-sm font-bold">{step.num}</span>
+                  <span className="text-[#679632] text-sm font-bold">{step.num}</span>
                 </div>
 
-                <h3 className="text-2xl font-heading font-black text-white mb-3">{step.title}</h3>
-                <p className="text-white/50 leading-relaxed text-sm max-w-xs">{step.desc}</p>
+                <h3 className="text-2xl font-heading font-black text-[#000201] mb-3">{step.title}</h3>
+                <p className="text-[#000201]/55 leading-relaxed text-sm max-w-xs">{step.desc}</p>
               </motion.div>
             ))}
           </div>

@@ -26,11 +26,13 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 bg-[#F7FAF4] relative">
+    <section className="py-24 bg-white relative">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#679632]/20 to-transparent" />
+
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-16">
           <motion.span
-            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-4"
+            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-4 border border-[#679632]/15"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -67,17 +69,16 @@ export default function Testimonials() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl p-8 border border-[#679632]/10 shadow-sm hover:shadow-xl hover:shadow-[#679632]/10 hover:border-[#679632]/25 transition-all duration-300"
+              className="bg-[#F7FAF4] rounded-2xl p-8 border border-[#679632]/10 hover:border-[#679632]/30 hover:shadow-lg hover:shadow-[#679632]/10 transition-all duration-300"
             >
-              {/* Stars */}
               <div className="flex gap-1 text-[#F4C542] mb-5">
                 {Array.from({ length: t.stars }).map((_, j) => (
                   <span key={j} className="text-lg">★</span>
                 ))}
               </div>
 
-              <p className="text-[#000201]/75 text-base leading-relaxed mb-8 relative">
-                <span className="text-[#679632] text-4xl font-serif leading-none absolute -top-2 -right-1 opacity-30">"</span>
+              <p className="text-[#000201]/70 text-base leading-relaxed mb-8 relative">
+                <span className="text-[#99C169] text-4xl font-serif leading-none absolute -top-2 -right-1 opacity-40">"</span>
                 {t.content}
               </p>
 
@@ -87,7 +88,7 @@ export default function Testimonials() {
                 </div>
                 <div>
                   <div className="font-heading font-black text-[#000201]">{t.name}</div>
-                  <div className="text-sm text-[#000201]/50">{t.role}</div>
+                  <div className="text-sm text-[#000201]/45">{t.role}</div>
                 </div>
               </div>
             </motion.div>
