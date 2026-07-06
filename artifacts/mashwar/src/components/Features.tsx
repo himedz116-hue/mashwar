@@ -106,9 +106,9 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="flex items-end justify-end px-8 md:px-16 pt-10 gap-8">
-            {/* Text — right next to building */}
-            <div className="text-right pb-10">
+          <div className="relative px-8 md:px-16 pt-10 pb-10">
+            {/* Text */}
+            <div className="text-right">
               <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
                 نصل لكل مكان
               </div>
@@ -117,8 +117,8 @@ export default function Features() {
               </p>
             </div>
 
-            {/* Building B — right side */}
-            <div className="flex-shrink-0">
+            {/* Building B — absolutely on the right */}
+            <div className="absolute right-0 bottom-0 flex-shrink-0 pointer-events-none">
               <img
                 src="/city-building-b.svg"
                 alt=""
