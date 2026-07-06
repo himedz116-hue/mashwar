@@ -7,9 +7,10 @@ const vehicles = [
     en: "Pickup Truck",
     desc: "مناسب لنقل الأغراض الخفيفة والطرود والمشاوير السريعة داخل المدينة.",
     capacity: "حتى ١ طن",
-    color: "#99C169",
-    bg: "from-[#99C169]/15 to-[#679632]/5",
-    border: "border-[#99C169]/30",
+    color: "#679632",
+    imgBg: "from-[#99C169]/20 to-[#EFF7E8]",
+    border: "border-[#99C169]/40",
+    img: "/vehicle-pickup.png",
   },
   {
     id: "satha",
@@ -18,8 +19,9 @@ const vehicles = [
     desc: "لنقل السيارات المعطلة، المركبات الجديدة، والمعدات الثقيلة بأمان تام.",
     capacity: "حتى ٣ أطنان",
     color: "#679632",
-    bg: "from-[#679632]/15 to-[#517D2E]/5",
-    border: "border-[#679632]/30",
+    imgBg: "from-[#679632]/20 to-[#EFF7E8]",
+    border: "border-[#679632]/40",
+    img: "/vehicle-flatbed.png",
   },
   {
     id: "dina",
@@ -27,9 +29,10 @@ const vehicles = [
     en: "Medium Truck",
     desc: "الخيار الأمثل لنقل أثاث المنازل وبضائع المستودعات والمواد الكبيرة.",
     capacity: "حتى ٥ أطنان",
-    color: "#517D2E",
-    bg: "from-[#517D2E]/15 to-[#99C169]/5",
-    border: "border-[#517D2E]/30",
+    color: "#679632",
+    imgBg: "from-[#517D2E]/20 to-[#EFF7E8]",
+    border: "border-[#517D2E]/40",
+    img: "/vehicle-dina.png",
   },
   {
     id: "dina-winch",
@@ -37,18 +40,12 @@ const vehicles = [
     en: "Crane Truck",
     desc: "مجهزة برافعة لرفع ونقل المعدات الثقيلة التي تحتاج إلى جهد إضافي.",
     capacity: "حتى ٨ أطنان",
-    color: "#000201",
-    bg: "from-[#000201]/10 to-[#517D2E]/5",
-    border: "border-[#000201]/20",
+    color: "#679632",
+    imgBg: "from-[#3a5c1e]/20 to-[#EFF7E8]",
+    border: "border-[#3a5c1e]/40",
+    img: "/vehicle-crane.png",
   },
 ];
-
-const truckIcons: Record<string, string> = {
-  wanette: "M2 17h18v2H2zm0-4h18v2H2zm2-4h14v2H4zm2-4h10v2H6zm4-4h2v2h-2z",
-  satha: "M1 3h22v2H1zm0 4h22v2H1zM3 11h18l2 6H1l2-6zm3 8a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z",
-  dina: "M1 3h22v14H1zM5 17v4M19 17v4M1 9h22",
-  "dina-winch": "M12 2l-2 4H4l4 4-2 6 6-3 6 3-2-6 4-4h-6l-2-4z",
-};
 
 export default function VehicleTypes() {
   return (
@@ -93,43 +90,29 @@ export default function VehicleTypes() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className={`relative bg-white rounded-3xl p-7 border ${v.border} shadow-sm hover:shadow-xl hover:shadow-[#679632]/10 transition-all duration-300 overflow-hidden group`}
+              className={`relative bg-white rounded-3xl border ${v.border} shadow-sm hover:shadow-xl hover:shadow-[#679632]/10 transition-all duration-300 overflow-hidden group`}
             >
-              {/* Background gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${v.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl`} />
+              {/* Vehicle image area */}
+              <div className={`bg-gradient-to-b ${v.imgBg} px-6 pt-6 pb-2 flex items-end justify-center h-[160px]`}>
+                <motion.img
+                  src={v.img}
+                  alt={v.name}
+                  className="w-full max-w-[200px] object-contain drop-shadow-md"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
 
-              <div className="relative z-10">
-                {/* Icon circle */}
+              {/* Card content */}
+              <div className="p-6 text-right">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-                  style={{ backgroundColor: v.color + "18" }}
-                >
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="24" height="24" rx="6" fill={v.color} fillOpacity="0.15" />
-                    <path
-                      d="M4 16h16M4 12h16M6 8h12M8 4h8"
-                      stroke={v.color}
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-
-                <div
-                  className="text-xs font-bold uppercase tracking-widest mb-2"
+                  className="text-xs font-bold uppercase tracking-widest mb-1.5"
                   style={{ color: v.color }}
                 >
                   {v.en}
                 </div>
-                <h3 className="text-2xl font-heading font-black text-[#000201] mb-3">{v.name}</h3>
-                <p className="text-[#000201]/60 text-sm leading-relaxed mb-5">{v.desc}</p>
-
+                <h3 className="text-2xl font-heading font-black text-[#000201] mb-2">{v.name}</h3>
+                <p className="text-[#000201]/60 text-sm leading-relaxed mb-4">{v.desc}</p>
                 <div
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold"
                   style={{ backgroundColor: v.color + "15", color: v.color }}
