@@ -107,24 +107,26 @@ export default function Features() {
           transition={{ duration: 0.7 }}
         >
           <div className="relative min-h-[220px] md:min-h-[260px]">
-            {/* Text — pinned to the left */}
-            <div className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2 text-left max-w-xs z-10">
-              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
-                نصل لكل مكان
+            {/* Text + Building grouped on the right */}
+            <div className="absolute right-0 inset-y-0 flex items-center gap-6 pr-8 md:pr-14">
+              {/* Text */}
+              <div className="text-right">
+                <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
+                  نصل لكل مكان
+                </div>
+                <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed max-w-[260px]">
+                  سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
+                </p>
               </div>
-              <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed">
-                سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
-              </p>
-            </div>
-
-            {/* Building B — pinned to the right, slightly inset */}
-            <div className="absolute right-8 md:right-16 bottom-0 pointer-events-none">
-              <img
-                src="/city-building-b.svg"
-                alt=""
-                aria-hidden="true"
-                className="h-48 md:h-64 w-auto opacity-90"
-              />
+              {/* Building */}
+              <div className="flex-shrink-0 self-end pointer-events-none">
+                <img
+                  src="/city-building-b.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-48 md:h-64 w-auto opacity-90"
+                />
+              </div>
             </div>
           </div>
         </motion.div>
