@@ -1,45 +1,31 @@
-# [Project name]
+# مشوار (Mashwar)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
-
-## Run & Operate
-
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+A freight & moving truck booking platform — Arabic RTL landing page + API server.
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Frontend** (`artifacts/mashwar`): React + Vite + Tailwind CSS v4, RTL Arabic UI, Wouter routing
+- **API Server** (`artifacts/api-server`): Express 5, Drizzle ORM, Pino logging
+- **Shared libs** (`lib/`): `api-spec`, `api-zod`, `api-client-react`, `db`
+- **Package manager**: pnpm workspaces
 
-## Where things live
+## Running the project
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+| Service | Workflow | Command |
+|---|---|---|
+| Frontend | `artifacts/mashwar: web` | `pnpm --filter @workspace/mashwar run dev` |
+| API Server | `artifacts/api-server: API Server` | `pnpm --filter @workspace/api-server run dev` |
 
-## Architecture decisions
+## Environment variables
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+| Variable | Required by | Notes |
+|---|---|---|
+| `PORT` | Both services | Auto-assigned by Replit per artifact |
+| `BASE_PATH` | Frontend | Auto-assigned by Replit (e.g. `/`) — required by vite.config.ts |
+| `DATABASE_URL` | API Server (DB routes) | PostgreSQL connection string — server starts without it, but DB-backed routes will fail |
+| `SESSION_SECRET` | API Server (future) | Available as a secret; not yet wired into middleware |
 
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+The **frontend landing page works without the API server** — it is a fully static marketing site.
+The **API server starts and serves `/api/healthz` without `DATABASE_URL`**; DB-backed routes need it.
 
 ## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
