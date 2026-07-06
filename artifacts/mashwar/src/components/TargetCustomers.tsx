@@ -1,76 +1,134 @@
 import { motion } from "framer-motion";
-import { User, Store, Building2, Box } from "lucide-react";
 
 const customers = [
   {
-    icon: <User className="w-10 h-10" />,
     title: "الأفراد",
-    desc: "لنقل الأثاث، والأغراض الشخصية، والمشتريات الكبيرة من المتاجر إلى منزلك."
+    desc: "لنقل الأثاث والأغراض الشخصية والمشتريات الكبيرة إلى منزلك بكل سهولة.",
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M4 21c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    num: "٦٠٪",
+    numLabel: "من مستخدمينا"
   },
   {
-    icon: <Store className="w-10 h-10" />,
     title: "أصحاب المتاجر",
-    desc: "لتوصيل بضائع متجرك للعملاء أو نقلها من الموردين بسرعة وكفاءة."
+    desc: "لتوصيل بضائع متجرك للعملاء ونقل المخزون من الموردين بسرعة وكفاءة.",
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      </svg>
+    ),
+    num: "٢٥٪",
+    numLabel: "تجار ومتاجر"
   },
   {
-    icon: <Building2 className="w-10 h-10" />,
     title: "شركات المقاولات",
-    desc: "لنقل المعدات الثقيلة، مواد البناء، والآليات بين مواقع العمل بسهولة."
+    desc: "لنقل المعدات الثقيلة ومواد البناء بين مواقع العمل بسهولة ودقة عالية.",
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M3 9h18M9 21V9M15 21V9" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    ),
+    num: "١٠٪",
+    numLabel: "شركات ومقاولون"
   },
   {
-    icon: <Box className="w-10 h-10" />,
     title: "المستودعات",
-    desc: "لإدارة لوجستيات التوزيع ونقل الشحنات الضخمة بين المخازن ونقاط البيع."
-  }
+    desc: "لإدارة لوجستيات التوزيع ونقل الشحنات الضخمة بين المخازن ونقاط البيع.",
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <path d="M2 20h20v2H2zM4 20V10l8-8 8 8v10" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    ),
+    num: "٥٪",
+    numLabel: "مستودعات وشركات توزيع"
+  },
 ];
 
 export default function TargetCustomers() {
   return (
-    <section id="customers" className="py-20 bg-muted/40 border-y border-border/50">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex flex-col md:flex-row items-center gap-12">
-          
-          <div className="md:w-1/3">
-            <motion.h2 
-              className="text-3xl md:text-4xl font-heading font-bold mb-6"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+    <section id="customers" className="py-24 bg-[#000201] relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: "radial-gradient(circle, #99C169 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }}
+      />
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#679632]/8 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="container mx-auto px-4 md:px-8 relative z-10">
+        <div className="flex flex-col lg:flex-row gap-16 items-start">
+          {/* Left text */}
+          <div className="lg:w-2/5">
+            <motion.span
+              className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/20 text-[#99C169] text-sm font-bold mb-6 border border-[#679632]/20"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              الكل يعتمد على مشوار
-            </motion.h2>
-            <motion.p 
-              className="text-muted-foreground text-lg mb-8 leading-relaxed"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              فئاتنا المستهدفة
+            </motion.span>
+            <motion.h2
+              className="text-4xl md:text-5xl font-heading font-black text-white mb-6 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              صممنا منصتنا لتلبي احتياجات شريحة واسعة من المستخدمين. من مشوار صغير لنقل أريكة، إلى أسطول لنقل مواد بناء.
+              الكل يعتمد
+              <br />
+              <span className="text-[#99C169]">على مشوار</span>
+            </motion.h2>
+            <motion.p
+              className="text-white/50 text-lg leading-relaxed mb-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              من مشوار صغير لنقل أريكة، إلى أسطول لنقل مواد بناء — المنصة مرنة لتلبية جميع الاحتياجات.
             </motion.p>
+            <motion.div
+              className="w-16 h-1 bg-[#679632] rounded-full"
+              initial={{ scaleX: 0, originX: 1 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            />
           </div>
 
-          <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-            {customers.map((item, idx) => (
+          {/* Cards */}
+          <div className="lg:w-3/5 grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
+            {customers.map((item, i) => (
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="bg-card p-6 rounded-2xl shadow-sm border border-border"
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="bg-[#0D1A0A] border border-[#679632]/20 rounded-2xl p-6 hover:border-[#679632]/50 transition-all duration-300 group"
               >
-                <div className="text-primary mb-4">
-                  {item.icon}
+                <div className="flex items-start justify-between mb-5">
+                  <div className="w-14 h-14 rounded-xl bg-[#679632]/15 text-[#99C169] flex items-center justify-center group-hover:bg-[#679632]/25 transition-colors">
+                    {item.icon}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-heading font-black text-[#99C169]">{item.num}</div>
+                    <div className="text-white/30 text-xs">{item.numLabel}</div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
+                <h3 className="text-xl font-heading font-black text-white mb-2">{item.title}</h3>
+                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
-
         </div>
       </div>
     </section>

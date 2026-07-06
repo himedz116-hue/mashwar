@@ -1,108 +1,105 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Link } from "wouter";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
     { name: "الرئيسية", href: "#hero" },
-    { name: "المركبات", href: "#vehicles" },
-    { name: "كيف تعمل", href: "#how-it-works" },
+    { name: "مركباتنا", href: "#vehicles" },
+    { name: "كيف يعمل", href: "#how-it-works" },
     { name: "المميزات", href: "#features" },
-    { name: "عملائنا", href: "#customers" },
+    { name: "عملاؤنا", href: "#customers" },
   ];
 
   const scrollTo = (id: string) => {
     setIsMobileMenuOpen(false);
-    const element = document.querySelector(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-white/90 backdrop-blur-md shadow-sm py-3"
+          ? "bg-[#000201]/95 backdrop-blur-xl shadow-xl shadow-black/20 py-3"
           : "bg-transparent py-5"
       }`}
     >
-      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 cursor-pointer">
-          <span className="text-3xl font-heading font-black text-primary tracking-tight">
-            مشوار
-          </span>
-        </Link>
+      <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollTo("#hero")}>
+          <img src="/logo.png" alt="مشوار" className="h-9 w-auto" />
+        </div>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          <ul className="flex items-center gap-6">
+          <ul className="flex items-center gap-7">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <button
                   onClick={() => scrollTo(link.href)}
-                  className="text-foreground/80 hover:text-primary font-medium transition-colors"
+                  className={`font-medium text-sm transition-colors duration-200 ${
+                    isScrolled
+                      ? "text-white/80 hover:text-[#99C169]"
+                      : "text-white/90 hover:text-[#99C169]"
+                  }`}
                 >
                   {link.name}
                 </button>
               </li>
             ))}
           </ul>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="font-bold border-primary text-primary hover:bg-primary/5">
+
+          <div className="flex items-center gap-3 mr-2">
+            <button
+              onClick={() => scrollTo("#download")}
+              className="px-5 py-2.5 text-sm font-bold rounded-lg border border-[#99C169]/60 text-[#99C169] hover:bg-[#99C169]/10 transition-all duration-200"
+            >
               حمل التطبيق
-            </Button>
-            <Button className="font-bold shadow-lg shadow-primary/20">
+            </button>
+            <button
+              onClick={() => scrollTo("#download")}
+              className="px-5 py-2.5 text-sm font-bold rounded-lg bg-[#679632] text-white hover:bg-[#517D2E] transition-all duration-200 shadow-lg shadow-[#679632]/30"
+            >
               سجل كسائق
-            </Button>
+            </button>
           </div>
         </div>
 
-        {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden text-foreground p-2"
+          className="md:hidden text-white p-2"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
       </div>
 
-      {/* Mobile Nav */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-border shadow-lg p-4 flex flex-col gap-4 animate-in slide-in-from-top-2">
-          <ul className="flex flex-col gap-2">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-[#000201]/98 backdrop-blur-xl border-b border-white/10 p-5 flex flex-col gap-4">
+          <ul className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <button
                   onClick={() => scrollTo(link.href)}
-                  className="w-full text-right py-3 px-4 rounded-md hover:bg-muted text-foreground font-medium"
+                  className="w-full text-right py-3 px-4 rounded-lg hover:bg-white/5 text-white/80 font-medium"
                 >
                   {link.name}
                 </button>
               </li>
             ))}
           </ul>
-          <div className="flex flex-col gap-2 pt-2 border-t border-border">
-            <Button variant="outline" className="w-full justify-center font-bold">
+          <div className="flex flex-col gap-2 pt-3 border-t border-white/10">
+            <button className="w-full py-3 text-center font-bold rounded-lg border border-[#99C169]/50 text-[#99C169]">
               حمل التطبيق
-            </Button>
-            <Button className="w-full justify-center font-bold">
+            </button>
+            <button className="w-full py-3 text-center font-bold rounded-lg bg-[#679632] text-white">
               سجل كسائق
-            </Button>
+            </button>
           </div>
         </div>
       )}

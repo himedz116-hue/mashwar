@@ -1,74 +1,124 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, ShieldCheck, Banknote, CreditCard, Star, HeadphonesIcon } from "lucide-react";
 
 const features = [
   {
-    icon: <CheckCircle2 className="w-6 h-6" />,
     title: "تتبع مباشر",
-    desc: "شاهد مسار مركبتك على الخريطة لحظة بلحظة منذ انطلاقها وحتى وصولها."
+    desc: "شاهد مسار مركبتك على الخريطة لحظة بلحظة من الانطلاق حتى الوصول.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+      </svg>
+    ),
   },
   {
-    icon: <ShieldCheck className="w-6 h-6" />,
     title: "سائقون موثقون",
-    desc: "جميع السائقين مسجلون رسمياً وتم التحقق من هوياتهم لضمان أعلى معايير الأمان."
+    desc: "جميع السائقين مسجلون رسمياً وتم التحقق الكامل من هوياتهم وخلفياتهم.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7l-9-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
   },
   {
-    icon: <Banknote className="w-6 h-6" />,
-    title: "أسعار واضحة",
-    desc: "لا مزايدات ولا مفاجآت، السعر التقديري يظهر لك قبل تأكيد الحجز."
+    title: "أسعار شفافة",
+    desc: "لا مفاجآت ولا مزايدات. السعر النهائي يظهر لك قبل تأكيد الحجز بثوانٍ.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M2 10h20" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M6 15h4M14 15h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
   {
-    icon: <CreditCard className="w-6 h-6" />,
     title: "دفع إلكتروني",
-    desc: "خيارات دفع متعددة وآمنة عبر البطاقات البنكية، مدى، آبل باي، أو نقداً."
+    desc: "بطاقات بنكية، مدى، آبل باي، أو نقداً — ادفع بالطريقة التي تفضلها.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M12 6v2m0 8v2M8.5 9.5a3.5 3.5 0 017 0c0 2-3.5 3-3.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
   {
-    icon: <Star className="w-6 h-6" />,
     title: "تقييم السائق",
-    desc: "نظام تقييم شفاف لضمان جودة الخدمة واستمرارية تميز السائقين."
+    desc: "نظام تقييم شفاف يضمن لك أفضل سائق في كل رحلة، ويحفز التميز المستمر.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      </svg>
+    ),
   },
   {
-    icon: <HeadphonesIcon className="w-6 h-6" />,
-    title: "دعم فني",
-    desc: "فريق خدمة عملاء متواجد على مدار الساعة لحل أي مشكلة قد تواجهك."
-  }
+    title: "دعم ٢٤/٧",
+    desc: "فريق خدمة عملاء متواجد على مدار الساعة عبر المحادثة المباشرة لمساعدتك.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M8 10h8M8 14h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 bg-background relative overflow-hidden">
-      {/* Decor */}
-      <div className="absolute left-0 bottom-0 opacity-10 pointer-events-none transform -scale-x-100">
-        <img src="/building-2.svg" alt="" className="w-[400px]" />
+    <section id="features" className="py-24 bg-[#F7FAF4] relative overflow-hidden">
+      {/* Decorative background element */}
+      <div className="absolute left-0 bottom-0 opacity-5 pointer-events-none">
+        <img src="/building-2.svg" alt="" className="w-[500px]" />
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-            لماذا تختار مشوار؟
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            نحن لا نوفر فقط مركبة نقل، بل نقدم تجربة متكاملة تركز على الأمان، السرعة، والموثوقية.
-          </p>
+      <div className="container mx-auto px-4 md:px-8 relative z-10">
+        <div className="text-center mb-16">
+          <motion.span
+            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            لماذا مشوار؟
+          </motion.span>
+          <motion.h2
+            className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            تجربة نقل
+            <span className="text-[#679632]"> لا مثيل لها</span>
+          </motion.h2>
+          <motion.p
+            className="text-[#000201]/55 text-lg max-w-xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            كل تفصيلة في مشوار صُممت لتمنحك راحة البال من لحظة الحجز حتى التسليم.
+          </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, idx) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, i) => (
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="bg-card p-6 rounded-2xl border border-border/50 shadow-sm hover:border-primary/50 transition-colors group"
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="bg-white rounded-2xl p-7 border border-[#679632]/10 shadow-sm hover:shadow-lg hover:shadow-[#679632]/10 hover:border-[#679632]/25 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-[#679632]/10 text-[#679632] flex items-center justify-center mb-5 group-hover:bg-[#679632] group-hover:text-white transition-all duration-300">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {feature.desc}
-              </p>
+              <h3 className="text-xl font-heading font-black text-[#000201] mb-3">{feature.title}</h3>
+              <p className="text-[#000201]/55 leading-relaxed text-sm">{feature.desc}</p>
             </motion.div>
           ))}
         </div>

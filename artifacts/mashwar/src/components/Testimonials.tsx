@@ -1,62 +1,93 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
 
 const testimonials = [
   {
     name: "أحمد العتيبي",
-    role: "صاحب متجر أثاث",
-    content: "اعتمدت على مشوار لتوصيل بضائع متجري للعملاء. خدمة ممتازة، السائقين محترفين، والتتبع المباشر يريح بالي وبال العميل."
+    role: "صاحب متجر أثاث، الرياض",
+    content: "اعتمدت على مشوار لتوصيل بضائع متجري للعملاء. خدمة ممتازة والسائقين محترفين، والتتبع المباشر يريح بالي وبال عميلي.",
+    initial: "أ",
+    stars: 5,
   },
   {
-    name: "سارة خالد",
-    role: "عميل",
-    content: "نقلت عفش بيتي بالكامل عن طريق مشوار. دينا كانت كبيرة ونظيفة والسعر كان الأفضل مقارنة بالسوق. تجربة رائعة!"
+    name: "سارة المطيري",
+    role: "عميلة، جدة",
+    content: "نقلت عفش بيتي بالكامل عن طريق مشوار. الدينا كانت كبيرة ونظيفة والسعر الأفضل مقارنة بالسوق. تجربة رائعة من البداية للنهاية!",
+    initial: "س",
+    stars: 5,
   },
   {
     name: "محمد الدوسري",
-    role: "مقاول",
-    content: "تطبيق فك أزمة! أطلب الدينا ونش في أي وقت للموقع وتوصل بسرعة. التسعيرة الواضحة قبل الطلب ميزة قوية جداً."
-  }
+    role: "مقاول، الدمام",
+    content: "تطبيق فك أزمة! أطلب الدينا ونش في أي وقت للموقع وتوصل بسرعة. التسعيرة الواضحة قبل الطلب ميزة قوية جداً.",
+    initial: "م",
+    stars: 5,
+  },
 ];
 
 export default function Testimonials() {
   return (
-    <section className="py-20 bg-background">
-      <div className="container mx-auto px-4 md:px-6">
+    <section className="py-24 bg-[#F7FAF4] relative">
+      <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-            ماذا يقولون عنا؟
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            آلاف المستخدمين يعتمدون على مشوار يومياً لإنجاز مهامهم.
-          </p>
+          <motion.span
+            className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            آراء عملائنا
+          </motion.span>
+          <motion.h2
+            className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            ماذا يقولون
+            <span className="text-[#679632]"> عن مشوار؟</span>
+          </motion.h2>
+          <motion.p
+            className="text-[#000201]/55 text-lg"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            آلاف المستخدمين يعتمدون علينا يومياً لإنجاز مهامهم.
+          </motion.p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((test, index) => (
+          {testimonials.map((t, i) => (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="bg-card p-8 rounded-2xl shadow-sm border border-border"
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              className="bg-white rounded-2xl p-8 border border-[#679632]/10 shadow-sm hover:shadow-xl hover:shadow-[#679632]/10 hover:border-[#679632]/25 transition-all duration-300"
             >
-              <div className="flex gap-1 text-yellow-400 mb-6">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="fill-current w-5 h-5" />
+              {/* Stars */}
+              <div className="flex gap-1 text-[#F4C542] mb-5">
+                {Array.from({ length: t.stars }).map((_, j) => (
+                  <span key={j} className="text-lg">★</span>
                 ))}
               </div>
-              <p className="text-foreground text-lg leading-relaxed mb-8 italic">
-                "{test.content}"
+
+              <p className="text-[#000201]/75 text-base leading-relaxed mb-8 relative">
+                <span className="text-[#679632] text-4xl font-serif leading-none absolute -top-2 -right-1 opacity-30">"</span>
+                {t.content}
               </p>
+
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-xl">
-                  {test.name.charAt(0)}
+                <div className="w-12 h-12 rounded-full bg-[#679632] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                  {t.initial}
                 </div>
                 <div>
-                  <h4 className="font-bold">{test.name}</h4>
-                  <p className="text-sm text-muted-foreground">{test.role}</p>
+                  <div className="font-heading font-black text-[#000201]">{t.name}</div>
+                  <div className="text-sm text-[#000201]/50">{t.role}</div>
                 </div>
               </div>
             </motion.div>
