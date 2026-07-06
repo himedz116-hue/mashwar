@@ -107,17 +107,6 @@ export default function Features() {
           transition={{ duration: 0.7 }}
         >
           <div className="flex items-end justify-between px-8 md:px-16 pt-10 gap-6">
-            {/* Building B on the left */}
-            <div className="flex-shrink-0">
-              <img
-                src="/city-building-b.svg"
-                alt=""
-                aria-hidden="true"
-                className="h-40 md:h-52 w-auto"
-                style={{ filter: "saturate(0.5) brightness(0.9)" }}
-              />
-            </div>
-
             {/* Center text */}
             <div className="flex-1 text-center pb-10">
               <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
@@ -128,14 +117,13 @@ export default function Features() {
               </p>
             </div>
 
-            {/* Building A on the right */}
+            {/* Building B */}
             <div className="flex-shrink-0">
               <img
-                src="/city-building-a.svg"
+                src="/city-building-b.svg"
                 alt=""
                 aria-hidden="true"
                 className="h-40 md:h-52 w-auto"
-                style={{ filter: "saturate(0.5) brightness(0.9)" }}
               />
             </div>
           </div>
