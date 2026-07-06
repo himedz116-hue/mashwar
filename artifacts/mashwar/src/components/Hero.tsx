@@ -10,23 +10,25 @@ export default function Hero() {
       id="hero"
       className="relative min-h-screen flex items-center overflow-hidden bg-white"
     >
-      {/* Background shapes */}
+      {/* Grid pattern background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[700px] h-[700px] rounded-full bg-[#99C169]/20 blur-[140px] translate-x-1/4 -translate-y-1/4" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[#679632]/15 blur-[120px] -translate-x-1/4 translate-y-1/4" />
-        {/* Dot pattern top-left */}
         <div
-          className="absolute inset-0 opacity-[0.06]"
+          className="absolute inset-0 opacity-[0.07]"
           style={{
-            backgroundImage: "radial-gradient(circle, #679632 1.5px, transparent 1.5px)",
-            backgroundSize: "36px 36px",
+            backgroundImage:
+              "linear-gradient(#679632 1px, transparent 1px), linear-gradient(90deg, #679632 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
           }}
         />
-        {/* Green accent bar top */}
+        {/* Green glow blobs */}
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#99C169]/25 blur-[130px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-[#679632]/15 blur-[100px]" />
+        <div className="absolute top-[40%] left-[35%] w-[280px] h-[280px] rounded-full bg-[#99C169]/10 blur-[80px]" />
+        {/* Top green accent line */}
         <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-[#99C169] via-[#679632] to-[#517D2E]" />
       </div>
 
-      <div className="container mx-auto px-4 md:px-8 relative z-10 pt-28 pb-16 md:pt-36 md:pb-24">
+      <div className="container mx-auto px-4 md:px-8 relative z-10 pt-28 pb-24 md:pt-36 md:pb-32">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Text */}
           <div className="flex-1 text-right order-2 lg:order-1">
@@ -68,13 +70,13 @@ export default function Hero() {
             >
               <button
                 onClick={() => scrollTo("#download")}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white text-lg font-black transition-all duration-300 shadow-xl shadow-[#679632]/30 hover:scale-105"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white text-lg font-black transition-all duration-300 shadow-2xl shadow-[#679632]/30 hover:scale-105"
               >
                 حمل التطبيق الآن
               </button>
               <button
                 onClick={() => scrollTo("#how-it-works")}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl border-2 border-[#679632]/30 text-[#679632] hover:bg-[#679632]/5 text-lg font-bold transition-all duration-300"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl border-2 border-[#679632]/35 text-[#679632] hover:bg-[#679632]/5 text-lg font-bold transition-all duration-300"
               >
                 كيف يعمل التطبيق؟
               </button>
@@ -93,8 +95,10 @@ export default function Hero() {
                 { value: "٤.٩", label: "تقييم العملاء" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-2xl md:text-3xl font-heading font-black text-[#679632]">{stat.value}</div>
-                  <div className="text-[#000201]/50 text-sm mt-1">{stat.label}</div>
+                  <div className="text-2xl md:text-3xl font-heading font-black text-[#679632]">
+                    {stat.value}
+                  </div>
+                  <div className="text-[#000201]/45 text-sm mt-1">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
@@ -112,9 +116,9 @@ export default function Hero() {
               <div className="absolute inset-0 bg-[#99C169]/30 blur-3xl rounded-full scale-75" />
 
               <div className="relative z-10 w-[260px] md:w-[300px]">
-                <div className="bg-[#679632] rounded-[2.5rem] p-2 shadow-2xl shadow-[#679632]/30">
+                <div className="bg-[#679632] rounded-[2.5rem] p-2 shadow-2xl shadow-[#679632]/40">
                   <div className="bg-[#f0f7e8] rounded-[2rem] overflow-hidden border border-[#99C169]/30">
-                    <div className="flex justify-between items-center px-5 pt-3 pb-1 bg-white/50">
+                    <div className="flex justify-between items-center px-5 pt-3 pb-1 bg-white/60">
                       <span className="text-[#000201]/40 text-xs">9:41</span>
                       <div className="w-20 h-5 bg-[#000201]/10 rounded-full mx-auto" />
                       <span className="text-[#000201]/40 text-xs">...</span>
@@ -163,10 +167,18 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Bottom divider wave */}
+      {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <path d="M0 60L1440 60L1440 20C1200 60 960 0 720 20C480 40 240 0 0 20L0 60Z" fill="#EFF7E8"/>
+        <svg
+          viewBox="0 0 1440 80"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0 80L1440 80L1440 40C1200 0 960 80 720 40C480 0 240 80 0 40L0 80Z"
+            fill="#EFF7E8"
+          />
         </svg>
       </div>
     </section>
