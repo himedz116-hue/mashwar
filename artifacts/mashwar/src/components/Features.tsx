@@ -106,24 +106,24 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="relative px-8 md:px-16 pt-10 pb-10 pr-44 md:pr-56">
-            {/* Text */}
-            <div className="text-right">
-              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
+          <div className="relative min-h-[220px] md:min-h-[260px] px-8 md:px-16 pt-12 pb-10 flex items-center">
+            {/* Text — left side */}
+            <div className="text-left max-w-sm relative z-10">
+              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
                 نصل لكل مكان
               </div>
-              <p className="text-[#000201]/55 text-base md:text-lg max-w-sm">
+              <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed">
                 سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
               </p>
             </div>
 
-            {/* Building B — absolutely on the right */}
-            <div className="absolute right-0 bottom-0 flex-shrink-0 pointer-events-none">
+            {/* Building B — right side, slightly inset */}
+            <div className="absolute right-8 md:right-16 bottom-0 flex-shrink-0 pointer-events-none">
               <img
                 src="/city-building-b.svg"
                 alt=""
                 aria-hidden="true"
-                className="h-40 md:h-52 w-auto"
+                className="h-48 md:h-64 w-auto opacity-90"
               />
             </div>
           </div>
