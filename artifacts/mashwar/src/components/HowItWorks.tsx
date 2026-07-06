@@ -18,10 +18,10 @@ const steps = [
     desc: "حدد نوع المركبة المناسب لحمولتك وشاهد السعر التقديري مباشرة قبل التأكيد.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path d="M1 17l2-8h18l2 8H1z" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5" strokeLinejoin="round"/>
-        <circle cx="6" cy="17" r="2" fill="#679632"/>
-        <circle cx="18" cy="17" r="2" fill="#679632"/>
-        <path d="M5 9V5h14v4" stroke="#679632" strokeWidth="1.5"/>
+        <rect x="1" y="7" width="13" height="9" rx="1" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5"/>
+        <path d="M14 10h4l3 4v2h-7V10z" fill="#679632" fillOpacity="0.2" stroke="#679632" strokeWidth="1.5" strokeLinejoin="round"/>
+        <circle cx="5.5" cy="17.5" r="1.5" fill="#679632"/>
+        <circle cx="18.5" cy="17.5" r="1.5" fill="#679632"/>
       </svg>
     ),
   },
