@@ -78,7 +78,7 @@ export default function DownloadCTA() {
               </div>
             </div>
 
-            {/* Phone mockup */}
+            {/* Illustration */}
             <div className="flex-shrink-0 w-full md:w-auto flex justify-center p-8 md:pl-0 md:pr-16">
               <motion.div
                 className="relative"
@@ -87,24 +87,14 @@ export default function DownloadCTA() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.3, duration: 0.7 }}
               >
-                <div className="absolute inset-0 bg-white/20 blur-3xl scale-75 rounded-full" />
-                <div className="relative bg-[#517D2E] rounded-[2rem] p-2 border border-white/20 shadow-2xl w-[200px] md:w-[220px]">
-                  <div className="bg-[#f0f7e8] rounded-[1.6rem] overflow-hidden">
-                    <div className="flex justify-between items-center px-4 pt-2 pb-1 bg-white/60">
-                      <span className="text-[#000201]/40 text-xs">9:41</span>
-                      <div className="w-16 h-4 bg-[#000201]/10 rounded-full mx-auto" />
-                      <span className="text-[#000201]/40 text-xs">...</span>
-                    </div>
-                    <motion.img
-                      src="/vehicles.png"
-                      alt="تطبيق مشوار"
-                      className="w-full object-cover object-top"
-                      style={{ maxHeight: "380px" }}
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                    />
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-white/20 blur-3xl scale-75 rounded-full pointer-events-none" />
+                <motion.img
+                  src="/cta-illustration.svg"
+                  alt="مشوار"
+                  className="relative w-[260px] md:w-[300px] drop-shadow-2xl"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                />
               </motion.div>
             </div>
           </div>
