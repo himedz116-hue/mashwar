@@ -67,11 +67,6 @@ const features = [
 export default function Features() {
   return (
     <section id="features" className="py-24 bg-[#F7FAF4] relative overflow-hidden">
-      {/* Decorative background element */}
-      <div className="absolute left-0 bottom-0 opacity-5 pointer-events-none">
-        <img src="/building-2.svg" alt="" className="w-[500px]" />
-      </div>
-
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="text-center mb-16">
           <motion.span
@@ -102,6 +97,49 @@ export default function Features() {
             كل تفصيلة في مشوار صُممت لتمنحك راحة البال من لحظة الحجز حتى التسليم.
           </motion.p>
         </div>
+
+        {/* City buildings banner above the grid */}
+        <motion.div
+          className="relative rounded-3xl overflow-hidden mb-12 bg-gradient-to-b from-[#EFF7E8] to-white border border-[#679632]/10 shadow-sm"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="flex items-end justify-between px-8 md:px-16 pt-10 gap-6">
+            {/* Building B on the left */}
+            <div className="flex-shrink-0">
+              <img
+                src="/city-building-b.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-40 md:h-52 w-auto"
+                style={{ filter: "saturate(0.5) brightness(0.9)" }}
+              />
+            </div>
+
+            {/* Center text */}
+            <div className="flex-1 text-center pb-10">
+              <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-2">
+                نصل لكل مكان
+              </div>
+              <p className="text-[#000201]/55 text-base md:text-lg max-w-sm mx-auto">
+                سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
+              </p>
+            </div>
+
+            {/* Building A on the right */}
+            <div className="flex-shrink-0">
+              <img
+                src="/city-building-a.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-40 md:h-52 w-auto"
+                style={{ filter: "saturate(0.5) brightness(0.9)" }}
+              />
+            </div>
+          </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (

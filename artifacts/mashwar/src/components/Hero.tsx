@@ -6,12 +6,9 @@ export default function Hero() {
   };
 
   return (
-    <section
-      id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden bg-white"
-    >
-      {/* Grid pattern background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <section id="hero" className="relative overflow-hidden bg-white">
+      {/* Grid pattern */}
+      <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
@@ -20,15 +17,12 @@ export default function Hero() {
             backgroundSize: "60px 60px",
           }}
         />
-        {/* Green glow blobs */}
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#99C169]/25 blur-[130px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-[#679632]/15 blur-[100px]" />
-        <div className="absolute top-[40%] left-[35%] w-[280px] h-[280px] rounded-full bg-[#99C169]/10 blur-[80px]" />
-        {/* Top green accent line */}
+        <div className="absolute top-[30%] left-[-10%] w-[400px] h-[400px] rounded-full bg-[#679632]/12 blur-[100px]" />
         <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-[#99C169] via-[#679632] to-[#517D2E]" />
       </div>
 
-      <div className="container mx-auto px-4 md:px-8 relative z-10 pt-28 pb-24 md:pt-36 md:pb-32">
+      <div className="container mx-auto px-4 md:px-8 relative z-10 pt-28 pb-16 md:pt-36 md:pb-20">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Text */}
           <div className="flex-1 text-right order-2 lg:order-1">
@@ -63,7 +57,7 @@ export default function Hero() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-14"
+              className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -82,7 +76,6 @@ export default function Hero() {
               </button>
             </motion.div>
 
-            {/* Stats */}
             <motion.div
               className="flex gap-10 justify-end sm:justify-start"
               initial={{ opacity: 0 }}
@@ -104,7 +97,7 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Phone visual */}
+          {/* Phone */}
           <div className="flex-1 order-1 lg:order-2 w-full max-w-sm mx-auto lg:max-w-none flex justify-center lg:justify-end">
             <motion.div
               initial={{ opacity: 0, x: 40 }}
@@ -112,9 +105,7 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              {/* Green glow behind phone */}
               <div className="absolute inset-0 bg-[#99C169]/30 blur-3xl rounded-full scale-75" />
-
               <div className="relative z-10 w-[260px] md:w-[300px]">
                 <div className="bg-[#679632] rounded-[2.5rem] p-2 shadow-2xl shadow-[#679632]/40">
                   <div className="bg-[#f0f7e8] rounded-[2rem] overflow-hidden border border-[#99C169]/30">
@@ -135,23 +126,19 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Floating badge - confirmed */}
               <motion.div
                 className="absolute -right-6 top-12 bg-white rounded-2xl shadow-xl shadow-[#679632]/15 border border-[#679632]/10 px-4 py-3 flex items-center gap-3"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
               >
-                <div className="w-10 h-10 rounded-full bg-[#679632] flex items-center justify-center text-white font-bold text-lg">
-                  ✓
-                </div>
+                <div className="w-10 h-10 rounded-full bg-[#679632] flex items-center justify-center text-white font-bold text-lg">✓</div>
                 <div>
                   <div className="text-xs text-[#000201]/50">تم تأكيد الطلب</div>
                   <div className="text-sm font-bold text-[#000201]">وانيت في الطريق</div>
                 </div>
               </motion.div>
 
-              {/* Floating rating badge */}
               <motion.div
                 className="absolute -left-6 bottom-20 bg-[#679632] rounded-2xl shadow-xl shadow-[#679632]/40 px-4 py-3 text-white"
                 initial={{ opacity: 0, x: -20 }}
@@ -167,20 +154,19 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg
-          viewBox="0 0 1440 80"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 80L1440 80L1440 40C1200 0 960 80 720 40C480 0 240 80 0 40L0 80Z"
-            fill="#EFF7E8"
-          />
-        </svg>
-      </div>
+      {/* Bottom wave into CityBanner */}
+      <svg
+        viewBox="0 0 1440 50"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+        style={{ display: "block", width: "100%", height: "50px" }}
+      >
+        <path
+          d="M0 50L1440 50L1440 20C1200 0 960 50 720 20C480 0 240 50 0 20L0 50Z"
+          fill="#517D2E"
+        />
+      </svg>
     </section>
   );
 }
