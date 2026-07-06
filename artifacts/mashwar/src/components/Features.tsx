@@ -106,9 +106,9 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="relative min-h-[220px] md:min-h-[260px] px-8 md:px-16 pt-12 pb-10 flex items-center">
-            {/* Text — left side */}
-            <div className="text-left max-w-sm relative z-10">
+          <div className="relative min-h-[220px] md:min-h-[260px]">
+            {/* Text — pinned to the left */}
+            <div className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2 text-left max-w-xs z-10">
               <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
                 نصل لكل مكان
               </div>
@@ -117,8 +117,8 @@ export default function Features() {
               </p>
             </div>
 
-            {/* Building B — right side, slightly inset */}
-            <div className="absolute right-8 md:right-16 bottom-0 flex-shrink-0 pointer-events-none">
+            {/* Building B — pinned to the right, slightly inset */}
+            <div className="absolute right-8 md:right-16 bottom-0 pointer-events-none">
               <img
                 src="/city-building-b.svg"
                 alt=""
