@@ -16,71 +16,88 @@ export default function CityBanner() {
       {/* Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#99C169]/20 blur-3xl pointer-events-none" />
 
-      {/* Buildings — absolutely placed, no effect on content layout */}
-      <motion.div
-        className="absolute bottom-0 left-0 pointer-events-none"
-        initial={{ opacity: 0, x: -40 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-      >
-        <img
-          src="/city-building-a.svg"
-          alt=""
-          aria-hidden="true"
-          className="h-40 md:h-[200px] w-auto block"
-          style={{ filter: "brightness(10) opacity(0.7)" }}
-        />
-      </motion.div>
+      {/* Decorative dots pattern */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white/5"
+            style={{
+              width: `${120 + i * 60}px`,
+              height: `${120 + i * 60}px`,
+              top: "50%",
+              left: "50%",
+              transform: `translate(-50%, -50%) scale(${0.4 + i * 0.2})`,
+            }}
+          />
+        ))}
+      </div>
 
-      <motion.div
-        className="absolute bottom-0 right-0 pointer-events-none"
-        initial={{ opacity: 0, x: 40 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-      >
-        <img
-          src="/city-building-b.svg"
-          alt=""
-          aria-hidden="true"
-          className="h-40 md:h-[200px] w-auto block"
-          style={{ filter: "brightness(10) opacity(0.7)" }}
-        />
-      </motion.div>
-
-      {/* Center content — full width, no competition with buildings */}
-      <div className="relative z-10 w-full py-16 md:py-20">
+      {/* Content */}
+      <div className="relative z-10 w-full py-20 md:py-24">
         <motion.div
-          className="text-center text-white max-w-lg mx-auto px-4"
-          initial={{ opacity: 0, y: 20 }}
+          className="text-center text-white max-w-2xl mx-auto px-6"
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.4 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="text-xs font-bold tracking-widest text-[#99C169] uppercase mb-3">تغطية شاملة</div>
-          <h2 className="text-3xl md:text-4xl font-heading font-black mb-3">
+          {/* Label */}
+          <motion.div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold tracking-widest text-[#c8e89a] uppercase mb-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#99C169] animate-pulse" />
+            تغطية شاملة
+          </motion.div>
+
+          {/* Title */}
+          <motion.h2
+            className="text-4xl md:text-5xl font-heading font-black mb-4 leading-tight"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
             نصل لكل حي في المدينة
-          </h2>
-          <p className="text-white/70 text-base leading-relaxed mb-8">
+          </motion.h2>
+
+          {/* Subtitle */}
+          <motion.p
+            className="text-white/65 text-lg leading-relaxed mb-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
             سائقو مشوار منتشرون في جميع الأحياء، جاهزون على مدار الساعة لخدمتك.
-          </p>
-          <div className="flex justify-center items-center gap-8">
-            <div>
-              <div className="text-2xl font-black text-[#99C169]">+٢٠</div>
-              <div className="text-white/60 text-xs mt-0.5">حي مغطى</div>
-            </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div>
-              <div className="text-2xl font-black text-[#99C169]">٢٤/٧</div>
-              <div className="text-white/60 text-xs mt-0.5">خدمة مستمرة</div>
-            </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div>
-              <div className="text-2xl font-black text-[#99C169]">١٥ دق</div>
-              <div className="text-white/60 text-xs mt-0.5">متوسط الوصول</div>
-            </div>
-          </div>
+          </motion.p>
+
+          {/* Stats */}
+          <motion.div
+            className="flex justify-center items-center gap-0"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            {[
+              { value: "+٢٠", label: "حي مغطى" },
+              { value: "٢٤/٧", label: "خدمة مستمرة" },
+              { value: "١٥ دق", label: "متوسط الوصول" },
+            ].map((stat, i) => (
+              <div key={i} className="flex items-center">
+                <div className="px-8 py-4 text-center">
+                  <div className="text-3xl font-black text-[#99C169] mb-1">{stat.value}</div>
+                  <div className="text-white/55 text-xs tracking-wide">{stat.label}</div>
+                </div>
+                {i < 2 && <div className="w-px h-12 bg-white/15" />}
+              </div>
+            ))}
+          </motion.div>
         </motion.div>
       </div>
     </section>
