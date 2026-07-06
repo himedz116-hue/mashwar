@@ -109,15 +109,6 @@ export default function Features() {
           <div className="relative min-h-[220px] md:min-h-[260px]">
             {/* Text + Building grouped on the right */}
             <div className="absolute right-0 inset-y-0 flex items-center gap-6 pr-8 md:pr-14">
-              {/* Text */}
-              <div className="text-right">
-                <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
-                  نصل لكل مكان
-                </div>
-                <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed max-w-[260px]">
-                  سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
-                </p>
-              </div>
               {/* Building */}
               <div className="flex-shrink-0 self-end pointer-events-none">
                 <img
@@ -126,6 +117,15 @@ export default function Features() {
                   aria-hidden="true"
                   className="h-48 md:h-64 w-auto opacity-90"
                 />
+              </div>
+              {/* Text */}
+              <div className="text-right">
+                <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
+                  نصل لكل مكان
+                </div>
+                <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed max-w-[260px]">
+                  سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
+                </p>
               </div>
             </div>
           </div>
