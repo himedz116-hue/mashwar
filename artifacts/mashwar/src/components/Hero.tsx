@@ -97,37 +97,28 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Phone */}
-          <div className="flex-1 order-1 lg:order-2 w-full max-w-sm mx-auto lg:max-w-none flex justify-center lg:justify-end">
+          {/* Phone mockup image */}
+          <div className="flex-1 order-1 lg:order-2 w-full max-w-md mx-auto lg:max-w-none flex justify-center lg:justify-end">
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-[#99C169]/30 blur-3xl rounded-full scale-75" />
-              <div className="relative z-10 w-[260px] md:w-[300px]">
-                <div className="bg-[#679632] rounded-[2.5rem] p-2 shadow-2xl shadow-[#679632]/40">
-                  <div className="bg-[#f0f7e8] rounded-[2rem] overflow-hidden border border-[#99C169]/30">
-                    <div className="flex justify-between items-center px-5 pt-3 pb-1 bg-white/60">
-                      <span className="text-[#000201]/40 text-xs">9:41</span>
-                      <div className="w-20 h-5 bg-[#000201]/10 rounded-full mx-auto" />
-                      <span className="text-[#000201]/40 text-xs">...</span>
-                    </div>
-                    <motion.img
-                      src="/vehicles.png"
-                      alt="تطبيق مشوار"
-                      className="w-full object-cover object-top"
-                      style={{ maxHeight: "520px" }}
-                      animate={{ y: [0, -12, 0] }}
-                      transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Glow behind phones */}
+              <div className="absolute inset-0 bg-[#99C169]/30 blur-3xl rounded-full scale-90 translate-y-8" />
 
+              <motion.img
+                src="/app-mockup.png"
+                alt="تطبيق مشوار"
+                className="relative z-10 w-[340px] md:w-[420px] lg:w-[460px] drop-shadow-2xl"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+              />
+
+              {/* Floating badge: order confirmed */}
               <motion.div
-                className="absolute -right-6 top-12 bg-white rounded-2xl shadow-xl shadow-[#679632]/15 border border-[#679632]/10 px-4 py-3 flex items-center gap-3"
+                className="absolute right-0 top-16 z-20 bg-white rounded-2xl shadow-xl shadow-[#679632]/15 border border-[#679632]/10 px-4 py-3 flex items-center gap-3"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
@@ -139,8 +130,9 @@ export default function Hero() {
                 </div>
               </motion.div>
 
+              {/* Floating badge: rating */}
               <motion.div
-                className="absolute -left-6 bottom-20 bg-[#679632] rounded-2xl shadow-xl shadow-[#679632]/40 px-4 py-3 text-white"
+                className="absolute left-0 bottom-24 z-20 bg-[#679632] rounded-2xl shadow-xl shadow-[#679632]/40 px-4 py-3 text-white"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 1 }}
