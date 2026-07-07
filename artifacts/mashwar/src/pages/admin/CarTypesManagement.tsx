@@ -1,8 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCarTypes, addCarType, editCarType, deleteCarType, type CarType } from "@/lib/meshwarApi";
-import { Truck, RefreshCw, Plus, Pencil, Trash2, XCircle, Check, DollarSign, Ruler, Weight } from "lucide-react";
+import {
+  Truck, RefreshCw, Plus, Pencil, Trash2, XCircle, Check,
+  DollarSign, Ruler, Weight, Upload, ImageIcon, Smartphone, Apple,
+} from "lucide-react";
 
-const empty: Partial<CarType> = { name: "", name_en: "", base_price: 0, price_per_km: 0, min_price: 0, max_weight: 0, description: "" };
+const empty: Partial<CarType> = {
+  name: "", name_en: "", base_price: 0, price_per_km: 0,
+  min_price: 0, max_weight: 0, description: "", icon: "",
+};
 
 function Modal({ initial, onSave, onClose }: {
   initial: Partial<CarType>; onSave: (d: Partial<CarType>) => Promise<void>; onClose: () => void;
@@ -10,8 +16,18 @@ function Modal({ initial, onSave, onClose }: {
   const [form, setForm] = useState<Partial<CarType>>(initial);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [iconMode, setIconMode] = useState<"url" | "file">(initial.icon ? "url" : "file");
+  const fileRef = useRef<HTMLInputElement>(null);
   const isEdit = !!initial.uuid;
   const set = (k: keyof CarType, v: unknown) => setForm((p) => ({ ...p, [k]: v }));
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      set("iconFile", file);
+      set("iconPreview", URL.createObjectURL(file));
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,58 +38,213 @@ function Modal({ initial, onSave, onClose }: {
     finally { setSaving(false); }
   };
 
+  const previewSrc = form.iconPreview ?? form.icon;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <form className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
+      <form className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 space-y-5 max-h-[92vh] overflow-y-auto" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="font-heading font-black text-[#1F4A10] text-lg">{isEdit ? "تعديل نوع المركبة" : "إضافة نوع جديد"}</h3>
-          <button type="button" onClick={onClose}><XCircle className="w-5 h-5 text-gray-400" /></button>
+          <div>
+            <h3 className="font-heading font-black text-[#1F4A10] text-xl">{isEdit ? "تعديل نوع المركبة" : "إضافة نوع جديد"}</h3>
+            <p className="text-xs text-gray-400 mt-0.5">يظهر في تطبيق Android و iOS</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <XCircle className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
         {/* Platform badges */}
-        <div className="flex gap-2 p-3 bg-[#F6FAF0] rounded-xl">
-          <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">🤖 Android</span>
-          <span className="text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">🍎 iOS</span>
-          <span className="text-xs text-gray-400">يظهر في كلا المنصتين</span>
+        <div className="flex gap-2 p-3 bg-[#F6FAF0] rounded-2xl border border-[#D4EDA8]">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 rounded-lg">
+            <Smartphone className="w-3.5 h-3.5 text-green-700" />
+            <span className="text-xs font-bold text-green-700">Android</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg">
+            <Apple className="w-3.5 h-3.5 text-gray-700" />
+            <span className="text-xs font-bold text-gray-700">iOS</span>
+          </div>
+          <span className="text-xs text-gray-400 self-center">يظهر في كلا المنصتين</span>
         </div>
 
+        {/* Icon upload */}
+        <div>
+          <label className="block text-xs font-bold text-gray-600 mb-2">أيقونة / صورة المركبة</label>
+          <div className="flex gap-2 mb-3">
+            {(["file", "url"] as const).map((m) => (
+              <button key={m} type="button" onClick={() => setIconMode(m)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${iconMode === m ? "bg-[#1F4A10] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                {m === "file" ? "📁 رفع صورة" : "🔗 رابط URL"}
+              </button>
+            ))}
+          </div>
+
+          {iconMode === "file" ? (
+            <div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+              {previewSrc ? (
+                <div className="relative w-24 h-24 mx-auto mb-3">
+                  <img src={previewSrc} className="w-24 h-24 object-contain rounded-2xl border-2 border-[#D4EDA8]" />
+                  <button type="button" onClick={() => { set("iconFile", undefined); set("iconPreview", ""); set("icon", ""); }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
+                    <XCircle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : null}
+              <button type="button" onClick={() => fileRef.current?.click()}
+                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-[#D4EDA8] rounded-2xl p-4 text-[#679632] hover:border-[#679632] hover:bg-[#F6FAF0] transition-all">
+                <Upload className="w-4 h-4" />
+                <span className="text-sm font-bold">{previewSrc ? "تغيير الصورة" : "اختر صورة"}</span>
+              </button>
+            </div>
+          ) : (
+            <div>
+              {previewSrc && (
+                <div className="flex justify-center mb-3">
+                  <img src={previewSrc} className="w-24 h-24 object-contain rounded-2xl border-2 border-[#D4EDA8]"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                </div>
+              )}
+              <input type="url" value={form.icon ?? ""} onChange={(e) => { set("icon", e.target.value); set("iconPreview", e.target.value); }}
+                placeholder="https://example.com/truck-icon.png"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
+            </div>
+          )}
+        </div>
+
+        {/* Name fields */}
         <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">الاسم بالعربي *</label>
+            <input type="text" value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} placeholder="مثال: وانيت"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">الاسم بالإنجليزي</label>
+            <input type="text" value={form.name_en ?? ""} onChange={(e) => set("name_en", e.target.value)} placeholder="Pickup Truck"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" dir="ltr" />
+          </div>
+        </div>
+
+        {/* Pricing fields */}
+        <div className="bg-[#F6FAF0] rounded-2xl p-4 space-y-3">
+          <p className="text-xs font-bold text-[#679632] flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> إعدادات التسعير</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "السعر الأساسي (ريال)", key: "base_price" as const, placeholder: "20" },
+              { label: "سعر/كم (ريال)", key: "price_per_km" as const, placeholder: "5" },
+              { label: "الحد الأدنى (ريال)", key: "min_price" as const, placeholder: "15" },
+            ].map((f) => (
+              <div key={f.key}>
+                <label className="block text-xs font-bold text-gray-500 mb-1">{f.label}</label>
+                <input type="number" min="0" step="0.01" value={String(form[f.key] ?? "")} placeholder={f.placeholder}
+                  onChange={(e) => set(f.key, Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] bg-white" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Weight */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5 flex items-center gap-1">
+              <Weight className="w-3.5 h-3.5" /> أقصى وزن (طن)
+            </label>
+            <input type="number" min="0" step="0.1" value={String(form.max_weight ?? "")} placeholder="5"
+              onChange={(e) => set("max_weight", Number(e.target.value))}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 mb-1.5">الوصف</label>
+          <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)}
+            rows={2} placeholder="وصف مختصر لنوع المركبة..."
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] resize-none" />
+        </div>
+
+        {err && <p className="text-red-500 text-xs bg-red-50 p-3 rounded-xl">{err}</p>}
+
+        <button type="submit" disabled={saving}
+          className="w-full py-3.5 rounded-xl bg-gradient-to-l from-[#679632] to-[#1F4A10] text-white font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#1F4A10]/20">
+          <Check className="w-4 h-4" /> {saving ? "جاري الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة النوع"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function TypeCard({ type, onEdit, onDelete }: { type: CarType; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group">
+      {/* Icon area */}
+      <div className="relative bg-gradient-to-br from-[#F6FAF0] to-[#D4EDA8]/30 h-32 flex items-center justify-center border-b border-gray-100">
+        {type.icon ? (
+          <img src={type.icon} className="h-20 w-20 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        ) : (
+          <div className="w-16 h-16 rounded-2xl bg-[#D4EDA8] flex items-center justify-center">
+            <Truck className="w-8 h-8 text-[#1F4A10]" />
+          </div>
+        )}
+        {/* Platform badges */}
+        <div className="absolute top-2 right-2 flex gap-1">
+          <span className="px-1.5 py-0.5 rounded-md bg-green-500/90 text-white text-[10px] font-bold">🤖</span>
+          <span className="px-1.5 py-0.5 rounded-md bg-gray-800/80 text-white text-[10px] font-bold">🍎</span>
+        </div>
+        {/* Actions overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+          <button onClick={onEdit} className="w-9 h-9 rounded-xl bg-white shadow-lg text-[#1F4A10] hover:bg-[#D4EDA8] transition-colors flex items-center justify-center">
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button onClick={onDelete} className="w-9 h-9 rounded-xl bg-white shadow-lg text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-4 space-y-3">
+        <div>
+          <h3 className="font-heading font-black text-[#1F4A10] text-lg leading-tight">{type.name}</h3>
+          {type.name_en && <p className="text-xs text-gray-400 font-medium" dir="ltr">{type.name_en}</p>}
+          {type.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{type.description}</p>}
+        </div>
+
+        {/* Pricing grid */}
+        <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "الاسم بالعربي *", key: "name" as const, type: "text", placeholder: "مثال: وانيت" },
-            { label: "الاسم بالإنجليزي", key: "name_en" as const, type: "text", placeholder: "Pickup Truck" },
-            { label: "السعر الأساسي (ريال)", key: "base_price" as const, type: "number", placeholder: "0" },
-            { label: "سعر الكم (ريال/كم)", key: "price_per_km" as const, type: "number", placeholder: "0" },
-            { label: "الحد الأدنى للسعر", key: "min_price" as const, type: "number", placeholder: "0" },
-            { label: "أقصى وزن (طن)", key: "max_weight" as const, type: "number", placeholder: "0" },
-          ].map((f) => (
-            <div key={f.key}>
-              <label className="block text-xs font-bold text-gray-500 mb-1">{f.label}</label>
-              <input type={f.type} value={String(form[f.key] ?? "")} placeholder={f.placeholder}
-                onChange={(e) => set(f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
+            { label: "أساسي", value: type.base_price, suffix: "ر" },
+            { label: "كم/ر", value: type.price_per_km, suffix: "" },
+            { label: "أدنى", value: type.min_price, suffix: "ر" },
+          ].map((p) => (
+            <div key={p.label} className="bg-[#F6FAF0] rounded-xl p-2 text-center">
+              <p className="text-xs text-gray-400">{p.label}</p>
+              <p className="font-heading font-black text-[#1F4A10] text-sm">{p.value ?? "—"}{p.value != null ? p.suffix : ""}</p>
             </div>
           ))}
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1">أيقونة (رابط URL)</label>
-          <input type="url" value={form.icon ?? ""} onChange={(e) => set("icon", e.target.value)} placeholder="https://..."
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
-        </div>
+        {type.max_weight != null && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Weight className="w-3.5 h-3.5 text-[#679632]" />
+            <span>أقصى وزن: <strong className="text-[#1F4A10]">{type.max_weight} طن</strong></span>
+          </div>
+        )}
 
-        <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1">الوصف</label>
-          <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)}
-            rows={2} placeholder="وصف نوع المركبة..."
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] resize-none" />
+        {/* Edit/Delete buttons */}
+        <div className="flex gap-2 pt-1">
+          <button onClick={onEdit}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#F6FAF0] text-[#1F4A10] hover:bg-[#D4EDA8] transition-colors text-xs font-bold">
+            <Pencil className="w-3.5 h-3.5" /> تعديل
+          </button>
+          <button onClick={onDelete}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors text-xs font-bold">
+            <Trash2 className="w-3.5 h-3.5" /> حذف
+          </button>
         </div>
-
-        {err && <p className="text-red-500 text-xs">{err}</p>}
-        <button type="submit" disabled={saving}
-          className="w-full py-3 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-          <Check className="w-4 h-4" /> {saving ? "جاري الحفظ..." : "حفظ"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
@@ -84,6 +255,7 @@ export default function CarTypesManagement() {
   const [error, setError] = useState("");
   const [modal, setModal] = useState<Partial<CarType> | null>(null);
   const [toast, setToast] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const load = () => {
     setLoading(true); setError("");
@@ -91,7 +263,10 @@ export default function CarTypesManagement() {
   };
 
   useEffect(() => { load(); }, []);
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast(msg); setToastType(type); setTimeout(() => setToast(""), 3500);
+  };
 
   const handleSave = async (form: Partial<CarType>) => {
     if (form.uuid) await editCarType(form);
@@ -101,131 +276,87 @@ export default function CarTypesManagement() {
   };
 
   const handleDelete = async (uuid: string, name: string) => {
-    if (!confirm(`هل تريد حذف "${name}"؟`)) return;
-    try { await deleteCarType(uuid); showToast("🗑️ تم الحذف"); load(); }
-    catch (e: unknown) { showToast("خطأ: " + (e instanceof Error ? e.message : String(e))); }
+    if (!confirm(`هل تريد حذف نوع "${name}"؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+    try { await deleteCarType(uuid); showToast("🗑️ تم الحذف بنجاح"); load(); }
+    catch (e: unknown) { showToast("خطأ: " + (e instanceof Error ? e.message : String(e)), "error"); }
   };
 
   return (
     <div className="space-y-5">
+      {/* Toast */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#1F4A10] text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-bold animate-bounce">
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-xl text-sm font-bold transition-all ${toastType === "success" ? "bg-[#1F4A10] text-white" : "bg-red-600 text-white"}`}>
           {toast}
         </div>
       )}
 
+      {modal && <Modal initial={modal} onSave={handleSave} onClose={() => setModal(null)} />}
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-heading font-black text-[#1F4A10]">أنواع المركبات والتسعير</h2>
-          <p className="text-sm text-gray-500 mt-0.5">إدارة فئات المركبات المتاحة على Android و iOS</p>
+          <p className="text-sm text-gray-500 mt-0.5">إدارة فئات المركبات على 🤖 Android و 🍎 iOS مع إمكانية رفع الصور</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition-colors">
-            <RefreshCw className="w-4 h-4" /> تحديث
+          <button onClick={load} disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 disabled:opacity-50 transition-colors">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> تحديث
           </button>
-          <button onClick={() => setModal(empty)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1F4A10] text-white text-sm font-bold hover:bg-[#2A5A14] transition-colors">
+          <button onClick={() => setModal(empty)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1F4A10] text-white text-sm font-bold hover:bg-[#2A5A14] transition-colors shadow-md shadow-[#1F4A10]/20">
             <Plus className="w-4 h-4" /> إضافة نوع
           </button>
         </div>
       </div>
 
-      {/* Summary banner */}
-      <div className="bg-gradient-to-l from-[#1F4A10] to-[#2A5A14] rounded-2xl p-5 text-white flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center">
-            <Truck className="w-7 h-7 text-[#D4EDA8]" />
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "أنواع مسجّلة", value: types.length, icon: Truck, color: "#1F4A10", bg: "#D4EDA8" },
+          { label: "مع أيقونة", value: types.filter((t) => t.icon).length, icon: ImageIcon, color: "#679632", bg: "#D4EDA8" },
+          { label: "متوسط السعر/كم", value: types.length ? (types.reduce((s, t) => s + (t.price_per_km ?? 0), 0) / types.length).toFixed(1) : "—", icon: DollarSign, color: "#2563eb", bg: "#dbeafe" },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
+              <s.icon className="w-5 h-5" style={{ color: s.color }} />
+            </div>
+            <div>
+              <p className="text-xl font-heading font-black" style={{ color: s.color }}>{s.value}</p>
+              <p className="text-xs text-gray-400">{s.label}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-3xl font-heading font-black text-[#D4EDA8]">{types.length}</p>
-            <p className="text-white/70 text-sm">نوع مركبة مسجّل</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-xs font-bold text-[#D4EDA8]">🤖 Android</span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-xs font-bold text-[#D4EDA8]">🍎 iOS</span>
-        </div>
+        ))}
       </div>
 
+      {/* Content */}
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" /></div>
       ) : error ? (
-        <div className="text-center py-12 text-red-500">{error}</div>
+        <div className="bg-red-50 rounded-2xl p-8 text-center border border-red-100">
+          <p className="text-red-500 font-bold">{error}</p>
+          <button onClick={load} className="mt-3 text-sm text-red-500 underline">إعادة المحاولة</button>
+        </div>
       ) : types.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
-          <Truck className="w-14 h-14 mx-auto mb-4 opacity-20" />
-          <p className="font-bold">لا توجد أنواع مركبات</p>
-          <button onClick={() => setModal(empty)} className="mt-3 text-sm text-[#679632] underline">أضف أول نوع</button>
+        <div className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-sm">
+          <Truck className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+          <p className="font-heading font-black text-gray-400 text-lg">لا توجد أنواع مركبات</p>
+          <p className="text-sm text-gray-400 mt-1">ابدأ بإضافة أول نوع من المركبات</p>
+          <button onClick={() => setModal(empty)}
+            className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1F4A10] text-white text-sm font-bold hover:bg-[#2A5A14] transition-colors mx-auto">
+            <Plus className="w-4 h-4" /> إضافة نوع
+          </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {types.map((t) => (
-            <div key={t.uuid} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow group">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4EDA8] to-[#a8d060] flex items-center justify-center shadow-sm">
-                  {t.icon ? (
-                    <img src={t.icon} className="w-8 h-8 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  ) : (
-                    <Truck className="w-7 h-7 text-[#1F4A10]" />
-                  )}
-                </div>
-                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setModal(t)} className="p-1.5 rounded-lg text-[#679632] hover:bg-[#F6FAF0] transition-colors" title="تعديل">
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => handleDelete(t.uuid, t.name)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors" title="حذف">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <h4 className="font-heading font-black text-[#1F4A10] text-lg">{t.name}</h4>
-              {t.name_en && <p className="text-xs text-gray-400 mt-0.5">{t.name_en}</p>}
-              {t.description && <p className="text-xs text-gray-500 mt-2 line-clamp-2">{t.description}</p>}
-
-              {/* Platform badges */}
-              <div className="flex gap-1.5 mt-3">
-                <span className="text-[10px] font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100">🤖 Android</span>
-                <span className="text-[10px] font-bold bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full border border-gray-100">🍎 iOS</span>
-              </div>
-
-              {/* Pricing */}
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {[
-                  { label: "أساسي", value: t.base_price != null ? `${t.base_price} ر` : "—", icon: DollarSign, color: "#1F4A10" },
-                  { label: "لكل كم", value: t.price_per_km != null ? `${t.price_per_km} ر` : "—", icon: Ruler, color: "#679632" },
-                  { label: "أدنى", value: t.min_price != null ? `${t.min_price} ر` : "—", icon: DollarSign, color: "#d97706" },
-                ].map((p) => (
-                  <div key={p.label} className="bg-[#F6FAF0] rounded-xl p-2 text-center">
-                    <p.icon className="w-3 h-3 mx-auto mb-1" style={{ color: p.color }} />
-                    <p className="text-[10px] text-gray-400">{p.label}</p>
-                    <p className="font-bold text-[#1F4A10] text-xs mt-0.5">{p.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              {t.max_weight != null && t.max_weight > 0 && (
-                <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
-                  <Weight className="w-3 h-3" /> أقصى وزن: {t.max_weight} طن
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="mt-4 flex gap-2">
-                <button onClick={() => setModal(t)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#F6FAF0] text-[#1F4A10] text-xs font-bold hover:bg-[#D4EDA8] transition-colors">
-                  <Pencil className="w-3.5 h-3.5" /> تعديل
-                </button>
-                <button onClick={() => handleDelete(t.uuid, t.name)}
-                  className="py-2 px-3 rounded-xl bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+            <TypeCard key={t.uuid} type={t}
+              onEdit={() => setModal({ ...t })}
+              onDelete={() => handleDelete(t.uuid, t.name)}
+            />
           ))}
         </div>
       )}
-
-      {modal && <Modal initial={modal} onSave={handleSave} onClose={() => setModal(null)} />}
     </div>
   );
 }

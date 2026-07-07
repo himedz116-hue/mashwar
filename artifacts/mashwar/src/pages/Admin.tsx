@@ -14,7 +14,7 @@ import UsersSection from "./admin/UsersSection";
 import DriversManagement from "./admin/DriversManagement";
 import DriversKYC from "./admin/DriversKYC";
 import OrdersManagement from "./admin/OrdersManagement";
-import FinanceBalance from "./admin/FinanceBalance";
+import FinancialManagement from "./admin/FinancialManagement";
 import CarTypesManagement from "./admin/CarTypesManagement";
 import CarsManagement from "./admin/CarsManagement";
 import CitiesManagement from "./admin/CitiesManagement";
@@ -45,7 +45,7 @@ const navGroups = [
     label: "العمليات",
     items: [
       { id: "orders",         label: "الطلبات والرحلات",         icon: Route,            component: OrdersManagement },
-      { id: "finance",        label: "الشؤون المالية",           icon: Wallet,           component: FinanceBalance },
+      { id: "finance",        label: "الشؤون المالية",           icon: Wallet,           component: FinancialManagement },
       { id: "messages",       label: "مركز الرسائل",             icon: MessageSquare,    component: MessagesCenter },
       { id: "notifications",  label: "مركز الإشعارات",           icon: Send,             component: NotificationsCenter },
     ],

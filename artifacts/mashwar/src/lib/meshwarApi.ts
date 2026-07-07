@@ -36,6 +36,17 @@ async function request<T = unknown>(
   return json as T;
 }
 
+async function multipartRequest(path: string, body: FormData): Promise<unknown> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getAdminToken()}`, Accept: "application/json" },
+    body,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(json?.message ?? `خطأ ${res.status}`, res.status);
+  return json;
+}
+
 // ── Auth ──────────────────────────────────────────────────
 export const adminLogin = (data: { email: string; password: string }) =>
   request<{ data: { token: string } }>("/api/admin/login", {
@@ -56,6 +67,16 @@ export const getAdminProfile = () =>
 
 export const editAdminProfile = (data: Partial<AdminProfile>) =>
   request("/api/admin/edit_profile", { method: "POST", body: JSON.stringify(data) });
+
+export const editAdminProfileWithAvatar = (data: Partial<AdminProfile> & { avatarFile?: File }) => {
+  if (!data.avatarFile) return editAdminProfile(data);
+  const fd = new FormData();
+  if (data.name) fd.append("name", data.name);
+  if (data.email) fd.append("email", data.email);
+  if (data.phone) fd.append("phone", data.phone);
+  fd.append("avatar", data.avatarFile);
+  return multipartRequest("/api/admin/edit_profile", fd);
+};
 
 export const changeAdminPassword = (data: { old_password: string; password: string; password_confirmation: string }) =>
   request("/api/admin/change_password", { method: "POST", body: JSON.stringify(data) });
@@ -81,6 +102,14 @@ export const editCity = (data: City) =>
 export const deleteCity = (uuid: string) =>
   request(`/api/admin/cities/destroy?uuid=${uuid}`, { method: "DELETE" });
 
+// ── Users ─────────────────────────────────────────────────
+export const getUsers = (params = "") =>
+  request<{ data: User[] }>(`/api/admin/users${params ? `?${params}` : ""}`);
+export const blockUser = (data: { uuid: string; status: "active" | "blocked" }) =>
+  request("/api/admin/users/block", { method: "POST", body: JSON.stringify(data) });
+export const deleteUser = (uuid: string) =>
+  request(`/api/admin/users/destroy?uuid=${uuid}`, { method: "DELETE" });
+
 // ── Drivers ───────────────────────────────────────────────
 export const getDrivers = (params = "") =>
   request<{ data: Driver[] }>(`/api/admin/drivers${params ? `?${params}` : ""}`);
@@ -93,26 +122,49 @@ export const sendDriverNotification = (data: { title: string; body: string; uuid
 
 // ── Car Types ─────────────────────────────────────────────
 export const getCarTypes = () => request<{ data: CarType[] }>("/api/admin/car_types");
-export const addCarType = (data: Partial<CarType>) =>
-  request("/api/admin/car_types/store", { method: "POST", body: JSON.stringify(data) });
-export const editCarType = (data: Partial<CarType>) =>
-  request("/api/admin/car_types/update", { method: "PUT", body: JSON.stringify(data) });
+
+export const addCarType = (data: Partial<CarType> & { iconFile?: File }) => {
+  if (!data.iconFile) {
+    const { iconFile: _, ...rest } = data;
+    return request("/api/admin/car_types/store", { method: "POST", body: JSON.stringify(rest) });
+  }
+  const fd = new FormData();
+  if (data.name) fd.append("name", data.name);
+  if (data.name_en) fd.append("name_en", data.name_en);
+  if (data.base_price != null) fd.append("base_price", String(data.base_price));
+  if (data.price_per_km != null) fd.append("price_per_km", String(data.price_per_km));
+  if (data.min_price != null) fd.append("min_price", String(data.min_price));
+  if (data.max_weight != null) fd.append("max_weight", String(data.max_weight));
+  if (data.description) fd.append("description", data.description);
+  fd.append("icon", data.iconFile);
+  return multipartRequest("/api/admin/car_types/store", fd);
+};
+
+export const editCarType = (data: Partial<CarType> & { iconFile?: File }) => {
+  if (!data.iconFile) {
+    const { iconFile: _, ...rest } = data;
+    return request("/api/admin/car_types/update", { method: "PUT", body: JSON.stringify(rest) });
+  }
+  const fd = new FormData();
+  if (data.uuid) fd.append("uuid", data.uuid);
+  if (data.name) fd.append("name", data.name);
+  if (data.name_en) fd.append("name_en", data.name_en);
+  if (data.base_price != null) fd.append("base_price", String(data.base_price));
+  if (data.price_per_km != null) fd.append("price_per_km", String(data.price_per_km));
+  if (data.min_price != null) fd.append("min_price", String(data.min_price));
+  if (data.max_weight != null) fd.append("max_weight", String(data.max_weight));
+  if (data.description) fd.append("description", data.description);
+  fd.append("icon", data.iconFile);
+  fd.append("_method", "PUT");
+  return multipartRequest("/api/admin/car_types/update", fd);
+};
+
 export const deleteCarType = (uuid: string) =>
   request(`/api/admin/car_types/destroy?uuid=${uuid}`, { method: "DELETE" });
 
 // ── Introductions ─────────────────────────────────────────
 export const getIntroductions = (type?: number) =>
   request<{ data: Introduction[] }>(`/api/introductions${type != null ? `?type=${type}` : ""}`);
-async function multipartRequest(path: string, body: FormData): Promise<unknown> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${getAdminToken()}`, Accept: "application/json" },
-    body,
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(json?.message ?? `خطأ ${res.status}`, res.status);
-  return json;
-}
 
 export const addIntroduction = (data: FormData) =>
   multipartRequest("/api/admin/introductions/store", data);
@@ -167,6 +219,17 @@ export interface City {
   name_en?: string;
   created_at?: string;
 }
+export interface User {
+  uuid: string;
+  name: string;
+  phone: string;
+  email?: string;
+  status?: string;
+  avatar?: string;
+  trips_count?: number;
+  rating?: number;
+  created_at?: string;
+}
 export interface Driver {
   uuid: string;
   name: string;
@@ -191,6 +254,8 @@ export interface CarType {
   name: string;
   name_en?: string;
   icon?: string;
+  iconFile?: File;
+  iconPreview?: string;
   base_price?: number;
   price_per_km?: number;
   min_price?: number;
