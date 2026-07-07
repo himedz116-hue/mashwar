@@ -1,15 +1,41 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // If we're on the home page → smooth scroll; otherwise → navigate home with hash
+  const scrollTo = (hash: string) => {
+    setIsMobileMenuOpen(false);
+    const id = hash.replace("#", "");
+    if (location === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Navigate to home, then scroll after paint
+      navigate("/");
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    }
+  };
+
+  const goHome = () => {
+    setIsMobileMenuOpen(false);
+    if (location === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+  };
 
   const navLinks = [
     { name: "الرئيسية", href: "#hero" },
@@ -18,11 +44,6 @@ export default function Navbar() {
     { name: "المميزات", href: "#features" },
     { name: "عملاؤنا", href: "#customers" },
   ];
-
-  const scrollTo = (id: string) => {
-    setIsMobileMenuOpen(false);
-    document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <nav
@@ -33,10 +54,12 @@ export default function Navbar() {
       }`}
     >
       <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollTo("#hero")}>
+        {/* Logo → home */}
+        <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
           <img src="/logo.png" alt="مشوار" className="h-9 w-auto" />
         </div>
 
+        {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
           <ul className="flex items-center gap-7">
             {navLinks.map((link) => (
@@ -67,6 +90,7 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Mobile hamburger */}
         <button
           className="md:hidden text-[#000201] p-2"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -75,6 +99,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-xl border-b border-[#679632]/10 shadow-xl p-5 flex flex-col gap-4">
           <ul className="flex flex-col gap-1">
@@ -90,10 +115,16 @@ export default function Navbar() {
             ))}
           </ul>
           <div className="flex flex-col gap-2 pt-3 border-t border-[#679632]/15">
-            <button className="w-full py-3 text-center font-bold rounded-lg border border-[#679632] text-[#679632]">
+            <button
+              onClick={() => scrollTo("#download")}
+              className="w-full py-3 text-center font-bold rounded-lg border border-[#679632] text-[#679632]"
+            >
               حمل التطبيق
             </button>
-            <button className="w-full py-3 text-center font-bold rounded-lg bg-[#679632] text-white">
+            <button
+              onClick={() => scrollTo("#download")}
+              className="w-full py-3 text-center font-bold rounded-lg bg-[#679632] text-white"
+            >
               سجل كسائق
             </button>
           </div>
