@@ -175,38 +175,89 @@ export default function VehicleTypes() {
 
         {/* Bottom CTA banner */}
         <motion.div
-          className="mt-16 rounded-[2rem] overflow-hidden bg-[#000201] shadow-2xl shadow-black/20"
+          className="mt-16 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-[#679632]/20"
+          style={{ background: "linear-gradient(135deg, #0d1f06 0%, #1a3a0a 50%, #0d1f06 100%)" }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="flex-1 p-8 md:p-14 text-right">
-              <h3 className="text-3xl md:text-4xl font-heading font-black text-white mb-4">
+          {/* Grid overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            style={{
+              backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          {/* Glow blobs */}
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[#679632]/25 blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#99C169]/15 blur-[80px] pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-0">
+
+            {/* Vehicle illustration — left side */}
+            <motion.div
+              className="hidden md:flex flex-shrink-0 items-end self-end pl-10 pb-0"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.7 }}
+            >
+              <img
+                src="/vehicle-illustration.svg"
+                alt=""
+                aria-hidden="true"
+                className="w-[220px] lg:w-[260px] object-contain opacity-90"
+                style={{ filter: "drop-shadow(0 20px 40px rgba(103,150,50,0.3))" }}
+              />
+            </motion.div>
+
+            {/* Text */}
+            <div className="flex-1 p-8 md:p-12 text-right">
+              <motion.span
+                className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/25 text-[#99C169] text-sm font-bold mb-5 border border-[#679632]/30"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                داخل التطبيق
+              </motion.span>
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white mb-4 leading-tight">
                 اختر مركبتك
                 <br />
                 <span className="text-[#99C169]">من داخل التطبيق</span>
               </h3>
-              <p className="text-white/55 text-lg leading-relaxed mb-8">
+              <p className="text-white/55 text-base md:text-lg leading-relaxed mb-8 max-w-md">
                 واجهة سهلة تعرض لك جميع المركبات المتاحة مع أسعارها وتفاصيلها في الوقت الفعلي.
               </p>
               <motion.button
-                whileHover={{ scale: 1.04 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-7 py-3.5 rounded-xl bg-[#679632] text-white font-bold hover:bg-[#517D2E] transition-colors shadow-lg shadow-[#679632]/30"
+                className="px-8 py-4 rounded-2xl bg-[#679632] text-white font-bold text-lg hover:bg-[#517D2E] transition-colors shadow-xl shadow-[#679632]/40"
               >
                 جرب التطبيق الآن
               </motion.button>
             </div>
-            <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end p-6 md:p-0">
-              <img
-                src="/vehicles.png"
-                alt="مركبات مشوار"
-                className="w-full max-w-[220px] md:max-w-[260px] rounded-2xl shadow-2xl"
-                style={{ objectFit: "cover", objectPosition: "top", maxHeight: "400px" }}
+
+            {/* App screenshot — right side */}
+            <motion.div
+              className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end px-6 md:px-0 md:pr-10 pb-6 md:pb-0"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.35, duration: 0.7 }}
+            >
+              <motion.img
+                src="/vehicle-app-screen.png"
+                alt="تطبيق مشوار"
+                className="w-[260px] md:w-[300px] lg:w-[340px] object-contain"
+                style={{ filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.5))" }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
               />
-            </div>
+            </motion.div>
+
           </div>
         </motion.div>
 
