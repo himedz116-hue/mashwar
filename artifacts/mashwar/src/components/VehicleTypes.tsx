@@ -232,11 +232,11 @@ export default function VehicleTypes() {
               transition={{ delay: 0.35, duration: 0.7 }}
             >
               <motion.img
-                src="/vehicle-app-screen.png"
+                src="/vehicle-app-screen.svg"
                 alt="تطبيق مشوار"
-                className="w-[260px] md:w-[300px] lg:w-[340px] object-contain"
-                style={{ filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.5))" }}
-                animate={{ y: [0, -8, 0] }}
+                className="w-[300px] md:w-[360px] lg:w-[420px] object-contain"
+                style={{ filter: "drop-shadow(0 24px 48px rgba(103,150,50,0.35))" }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
               />
             </motion.div>
