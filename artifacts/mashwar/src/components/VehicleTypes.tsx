@@ -196,23 +196,6 @@ export default function VehicleTypes() {
 
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-0">
 
-            {/* Vehicle illustration — left side */}
-            <motion.div
-              className="hidden md:flex flex-shrink-0 items-end self-end pl-10 pb-0"
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-            >
-              <img
-                src="/vehicle-illustration.svg"
-                alt=""
-                aria-hidden="true"
-                className="w-[220px] lg:w-[260px] object-contain opacity-90"
-                style={{ filter: "drop-shadow(0 20px 40px rgba(103,150,50,0.3))" }}
-              />
-            </motion.div>
-
             {/* Text */}
             <div className="flex-1 p-8 md:p-12 text-right">
               <motion.span
