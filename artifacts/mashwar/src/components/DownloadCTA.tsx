@@ -89,7 +89,7 @@ export default function DownloadCTA() {
               >
                 <div className="absolute inset-0 bg-white/20 blur-3xl scale-75 rounded-full pointer-events-none" />
                 <motion.img
-                  src="/cta-illustration.svg"
+                  src="/cta-illustration_2.png"
                   alt="مشوار"
                   className="relative w-[380px] md:w-[520px] lg:w-[580px] drop-shadow-2xl object-contain"
                   animate={{ y: [0, -10, 0] }}
