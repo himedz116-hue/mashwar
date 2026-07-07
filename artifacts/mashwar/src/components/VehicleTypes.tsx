@@ -175,33 +175,36 @@ export default function VehicleTypes() {
 
         {/* Bottom CTA banner */}
         <motion.div
-          className="mt-16 rounded-[2rem] overflow-hidden relative shadow-2xl shadow-black/25"
-          style={{ background: "linear-gradient(135deg, #0f2405 0%, #1c3d08 50%, #0f2405 100%)" }}
+          className="mt-16 rounded-[2rem] overflow-hidden relative border border-[#679632]/15 shadow-xl shadow-[#679632]/10"
+          style={{ background: "#ffffff" }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          {/* textures & glows */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #99C169 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[#679632]/25 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#99C169]/10 blur-[80px] pointer-events-none" />
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#99C169]/40 to-transparent" />
+          {/* White grid background */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            backgroundImage: "linear-gradient(#679632 1px, transparent 1px), linear-gradient(90deg, #679632 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+            opacity: 0.05,
+          }} />
+          {/* Green glow top-right */}
+          <div className="absolute -top-10 -right-10 w-[300px] h-[300px] rounded-full bg-[#679632]/10 blur-[80px] pointer-events-none" />
 
-          {/* ── single row: illustration LEFT  |  text RIGHT ── */}
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-0 min-h-[340px]">
+          {/* ── row: illustration LEFT  |  text RIGHT ── */}
+          <div className="relative z-10 flex flex-col md:flex-row items-center min-h-[320px]">
 
-            {/* ILLUSTRATION — sits on the left edge, flush to bottom */}
+            {/* ILLUSTRATION */}
             <motion.div
-              className="flex-shrink-0 flex items-end justify-center self-end px-10 pt-10 md:pt-0 md:pl-14"
+              className="flex-shrink-0 flex items-end self-end justify-center px-8 md:pl-12 pt-8 md:pt-0"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.7 }}
             >
               <motion.div
-                className="rounded-2xl overflow-hidden shadow-xl shadow-black/30"
-                style={{ background: "linear-gradient(160deg, #eef7e2 0%, #dff0cb 100%)" }}
+                className="rounded-2xl overflow-hidden shadow-lg shadow-[#679632]/15 border border-[#679632]/10"
+                style={{ background: "linear-gradient(160deg, #f2fae8 0%, #e5f5d0 100%)" }}
                 animate={{ y: [0, -8, 0] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
               >
@@ -213,28 +216,28 @@ export default function VehicleTypes() {
               </motion.div>
             </motion.div>
 
-            {/* TEXT — fills remaining space on the right */}
-            <div className="flex-1 flex flex-col justify-center items-end text-right p-8 md:p-12 lg:p-14">
+            {/* TEXT */}
+            <div className="flex-1 flex flex-col justify-center items-end text-right p-8 md:p-10 lg:p-14">
 
               <motion.span
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#679632]/20 text-[#99C169] text-xs font-bold border border-[#679632]/30 mb-5"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#679632]/10 text-[#517D2E] text-xs font-bold border border-[#679632]/20 mb-5"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#99C169] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#679632] animate-pulse" />
                 داخل التطبيق
               </motion.span>
 
               <motion.h3
-                className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white leading-tight mb-4"
+                className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-[#000201] leading-tight mb-4"
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
               >
                 اختر مركبتك
                 <br />
-                <span className="text-[#99C169]">من داخل التطبيق</span>
+                <span className="text-[#679632]">من داخل التطبيق</span>
               </motion.h3>
 
               <motion.p
-                className="text-white/55 text-sm md:text-base leading-relaxed mb-7 max-w-sm"
+                className="text-[#000201]/50 text-sm md:text-base leading-relaxed mb-7 max-w-sm"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
               >
                 واجهة بسيطة تعرض كل المركبات بأسعارها وتقييمات السائقين لحظةً بلحظة.
@@ -245,35 +248,35 @@ export default function VehicleTypes() {
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.25 }}
               >
                 {["٤ أنواع مركبات للاختيار", "أسعار شفافة قبل التأكيد", "سائقون موثقون ومُقيَّمون"].map(f => (
-                  <div key={f} className="flex items-center justify-end gap-2.5 text-white/70 text-sm">
+                  <div key={f} className="flex items-center justify-end gap-2.5 text-[#000201]/60 text-sm">
                     <span>{f}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                      <path d="M20 6L9 17l-5-5" stroke="#99C169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <div className="w-5 h-5 rounded-full bg-[#679632]/15 flex items-center justify-center flex-shrink-0">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="#679632" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
                   </div>
                 ))}
               </motion.div>
 
               <motion.div
-                className="flex items-center gap-6 flex-wrap justify-end"
+                className="flex items-center gap-5 flex-wrap justify-end"
                 initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
               >
                 {/* Stats */}
-                <div className="flex items-center gap-5">
-                  {[{ v: "+١٠٠٠", l: "سائق" }, { v: "٩٨٪", l: "رضا" }, { v: "٢٤/٧", l: "خدمة" }].map((s, i) => (
-                    <div key={s.l} className="flex items-center gap-5">
-                      {i > 0 && <div className="w-px h-8 bg-white/10" />}
-                      <div className="text-right">
-                        <div className="text-base font-black text-[#99C169] leading-none">{s.v}</div>
-                        <div className="text-white/35 text-xs mt-0.5">{s.l}</div>
-                      </div>
+                {[{ v: "+١٠٠٠", l: "سائق" }, { v: "٩٨٪", l: "رضا" }, { v: "٢٤/٧", l: "خدمة" }].map((s, i) => (
+                  <div key={s.l} className="flex items-center gap-5">
+                    {i > 0 && <div className="w-px h-7 bg-black/10" />}
+                    <div className="text-right">
+                      <div className="text-base font-black text-[#679632] leading-none">{s.v}</div>
+                      <div className="text-[#000201]/35 text-xs mt-0.5">{s.l}</div>
                     </div>
-                  ))}
-                </div>
-                {/* Button */}
+                  </div>
+                ))}
+                <div className="w-px h-7 bg-black/10" />
                 <motion.button
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-                  className="px-7 py-3.5 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white font-bold text-sm transition-colors shadow-lg shadow-[#679632]/30"
+                  className="px-6 py-3 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white font-bold text-sm transition-colors shadow-lg shadow-[#679632]/25"
                 >
                   جرب التطبيق الآن
                 </motion.button>
