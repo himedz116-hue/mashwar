@@ -175,123 +175,106 @@ export default function VehicleTypes() {
 
         {/* Bottom CTA banner */}
         <motion.div
-          className="mt-16 rounded-[2rem] overflow-hidden relative shadow-2xl shadow-[#679632]/20"
-          style={{ background: "linear-gradient(135deg, #517D2E 0%, #679632 50%, #4A7228 100%)" }}
+          className="mt-16 rounded-[2rem] overflow-hidden relative"
+          style={{ background: "linear-gradient(135deg, #0f2405 0%, #1a3a08 45%, #122d04 100%)" }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          {/* Grid */}
-          <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ backgroundImage: "linear-gradient(white 1px,transparent 1px),linear-gradient(90deg,white 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
-          {/* Glows */}
-          <div className="absolute -top-20 -right-20 w-[400px] h-[400px] rounded-full bg-white/10 blur-[80px] pointer-events-none" />
-          <div className="absolute -bottom-20 left-1/4 w-[350px] h-[350px] rounded-full bg-black/20 blur-[80px] pointer-events-none" />
+          {/* Dot texture */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #99C169 1.2px, transparent 1.2px)", backgroundSize: "30px 30px" }} />
+          {/* Glow right */}
+          <div className="absolute top-0 right-0 w-[500px] h-full bg-[#679632]/20 blur-[100px] pointer-events-none" />
+          {/* Accent top line */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#99C169]/50 to-transparent" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center py-10 md:py-0">
+          <div className="relative z-10 flex flex-col md:flex-row items-stretch">
 
-            {/* Illustration */}
-            <motion.div
-              className="flex-shrink-0 flex items-end justify-center px-8 md:pl-12 md:pr-0 pt-8 md:pt-0"
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-            >
-              <motion.img
-                src="/vehicle-app-screen.svg"
-                alt="تطبيق مشوار"
-                className="w-[260px] md:w-[300px] lg:w-[340px] object-contain"
-                style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.35))" }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-              />
-            </motion.div>
-
-            {/* Text */}
-            <div className="flex-1 p-8 md:p-12 text-right">
+            {/* ── TEXT side (right in RTL) ── */}
+            <div className="flex-1 flex flex-col justify-center p-10 md:p-14 text-right order-2 md:order-1">
 
               <motion.span
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs font-bold border border-white/20 mb-5"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
+                className="inline-flex self-end items-center gap-2 px-3 py-1 rounded-full text-[#99C169] text-xs font-bold border border-[#679632]/40 bg-[#679632]/15 mb-6"
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D4EDA8] animate-pulse" />
-                داخل التطبيق
+                <span className="w-1.5 h-1.5 rounded-full bg-[#99C169] animate-pulse" /> داخل التطبيق
               </motion.span>
 
               <motion.h3
-                className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white mb-4 leading-tight"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.15 }}
+                className="text-3xl md:text-4xl xl:text-5xl font-heading font-black text-white mb-4 leading-snug"
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
               >
-                اختر مركبتك
-                <br />
-                <span className="text-[#D4EDA8]">من داخل التطبيق</span>
+                اختر مركبتك<br />
+                <span className="text-[#99C169]">من داخل التطبيق</span>
               </motion.h3>
 
               <motion.p
-                className="text-white/70 text-base leading-relaxed mb-7 max-w-sm"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
+                className="text-white/55 text-base leading-relaxed mb-8 max-w-xs"
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
               >
-                واجهة سهلة تعرض جميع المركبات المتاحة مع أسعارها وتفاصيل السائقين في الوقت الفعلي.
+                واجهة بسيطة تعرض كل المركبات بأسعارها وتقييمات السائقين لحظةً بلحظة.
               </motion.p>
 
               {/* Features */}
               <motion.div
-                className="flex flex-col gap-3 mb-8 items-end"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.25 }}
+                className="flex flex-col gap-3 mb-9 items-end"
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.25 }}
               >
-                {[
-                  "٤ أنواع مركبات للاختيار",
-                  "أسعار شفافة قبل التأكيد",
-                  "سائقون موثقون ومُقيَّمون",
-                ].map((f) => (
-                  <div key={f} className="flex items-center gap-2.5 text-white/80 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.15)"/>
-                      <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                {["٤ أنواع مركبات للاختيار", "أسعار شفافة قبل التأكيد", "سائقون موثقون ومُقيَّمون"].map(f => (
+                  <div key={f} className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="#99C169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     {f}
                   </div>
                 ))}
               </motion.div>
 
+              {/* Button + stats */}
               <motion.div
-                className="flex flex-col sm:flex-row items-end sm:items-center gap-6"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
+                className="flex flex-wrap items-center justify-end gap-6"
+                initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
               >
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-8 py-4 rounded-2xl bg-white text-[#517D2E] font-black text-base hover:bg-[#D4EDA8] transition-colors shadow-xl"
-                >
-                  جرب التطبيق الآن
-                </motion.button>
-
-                <div className="flex gap-6">
-                  {[{ val: "+١٠٠٠", label: "سائق" }, { val: "٩٨٪", label: "رضا" }].map((s) => (
-                    <div key={s.label} className="text-right">
-                      <div className="text-xl font-black text-[#D4EDA8]">{s.val}</div>
-                      <div className="text-white/50 text-xs mt-0.5">{s.label}</div>
+                <div className="flex gap-5 text-right">
+                  {[{ v: "+١٠٠٠", l: "سائق" }, { v: "٩٨٪", l: "رضا" }, { v: "٢٤/٧", l: "خدمة" }].map((s, i) => (
+                    <div key={s.l} className="flex items-center gap-5">
+                      {i > 0 && <div className="h-8 w-px bg-white/10" />}
+                      <div>
+                        <div className="text-lg font-black text-[#99C169]">{s.v}</div>
+                        <div className="text-white/35 text-xs">{s.l}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                  className="px-7 py-3.5 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white font-bold text-sm transition-colors shadow-lg shadow-[#679632]/30"
+                >
+                  جرب التطبيق الآن
+                </motion.button>
               </motion.div>
             </div>
+
+            {/* ── ILLUSTRATION side ── */}
+            <motion.div
+              className="flex-shrink-0 order-1 md:order-2 flex items-end justify-center md:justify-end"
+              initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.25, duration: 0.7 }}
+            >
+              {/* white frosted card that intentionally frames the illustration */}
+              <div className="relative m-8 md:m-0 md:mr-10 md:mb-0 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-black/40"
+                style={{ background: "linear-gradient(160deg,#f0f9e4 0%,#e8f5d8 100%)" }}>
+                <motion.img
+                  src="/vehicle-app-screen.svg"
+                  alt="تطبيق مشوار"
+                  className="w-[260px] md:w-[300px] lg:w-[340px] block"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                />
+                {/* top shimmer */}
+                <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+              </div>
+            </motion.div>
 
           </div>
         </motion.div>
