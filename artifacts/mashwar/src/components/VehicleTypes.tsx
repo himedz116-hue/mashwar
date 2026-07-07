@@ -196,7 +196,7 @@ export default function VehicleTypes() {
 
             {/* ILLUSTRATION — first in DOM = right side in RTL */}
             <motion.div
-              className="flex-shrink-0 flex items-end self-end justify-center px-8 md:pl-12 pt-8 md:pt-0"
+              className="flex-shrink-0 flex items-center self-center justify-center px-8 md:pl-12 pt-8 md:pt-0"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -249,12 +249,12 @@ export default function VehicleTypes() {
               >
                 {["٤ أنواع مركبات للاختيار", "أسعار شفافة قبل التأكيد", "سائقون موثقون ومُقيَّمون"].map(f => (
                   <div key={f} className="flex items-center justify-end gap-2.5 text-[#000201]/60 text-sm">
-                    <span>{f}</span>
                     <div className="w-5 h-5 rounded-full bg-[#679632]/15 flex items-center justify-center flex-shrink-0">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
                         <path d="M20 6L9 17l-5-5" stroke="#679632" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
+                    <span>{f}</span>
                   </div>
                 ))}
               </motion.div>
