@@ -217,7 +217,7 @@ export default function VehicleTypes() {
             </motion.div>
 
             {/* TEXT — second in DOM = left side in RTL */}
-            <div className="flex-1 flex flex-col justify-center items-end text-right p-8 md:p-10 lg:p-14">
+            <div className="flex-1 flex flex-col justify-center items-start text-right p-8 md:p-10 lg:p-14">
 
               <motion.span
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#679632]/10 text-[#517D2E] text-xs font-bold border border-[#679632]/20 mb-5"
