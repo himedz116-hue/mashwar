@@ -74,6 +74,14 @@ export default function Contact() {
     if (Object.keys(e2).length) { setErrors(e2); return; }
     setLoading(true);
 
+    const triggerMailto = () => {
+      const subject = encodeURIComponent(`رسالة من ${form.name} — مشوار`);
+      const body = encodeURIComponent(
+        `الاسم: ${form.name}\nرقم الجوال: +966${form.phone}\n\nالرسالة:\n${form.message}`
+      );
+      window.open(`mailto:mshwarsh@gmail.com?subject=${subject}&body=${body}`, "_blank");
+    };
+
     try {
       const { error } = await supabase
         .from("contact_messages")
@@ -86,17 +94,16 @@ export default function Contact() {
       if (error) {
         console.error("Supabase error:", error);
         // Fallback to mailto if DB insert fails
-        const subject = encodeURIComponent(`رسالة من ${form.name} — مشوار`);
-        const body = encodeURIComponent(
-          `الاسم: ${form.name}\nرقم الجوال: +966${form.phone}\n\nالرسالة:\n${form.message}`
-        );
-        window.open(`mailto:mshwarsh@gmail.com?subject=${subject}&body=${body}`, "_blank");
+        triggerMailto();
       }
+      setSubmitted(true);
     } catch (err) {
       console.error("Unexpected error:", err);
+      // Fallback to mailto on any unexpected failure
+      triggerMailto();
+      setSubmitted(true);
     } finally {
       setLoading(false);
-      setSubmitted(true);
     }
   };
 
