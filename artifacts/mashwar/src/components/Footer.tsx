@@ -45,10 +45,15 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-heading font-black mb-5">قانونية</h3>
             <ul className="space-y-3 text-sm">
-              {["الشروط والأحكام", "سياسة الخصوصية", "شروط السائقين", "الأسئلة الشائعة"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-white transition-colors">
-                    {item}
+              {[
+                { label: "الشروط والأحكام", href: "/terms" },
+                { label: "سياسة الخصوصية", href: "/privacy" },
+                { label: "شروط السائقين", href: "/driver-terms" },
+                { label: "الأسئلة الشائعة", href: "/faq" },
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.href} className="hover:text-white transition-colors">
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -58,8 +63,13 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-heading font-black mb-5">تواصل معنا</h3>
             <ul className="space-y-3 text-sm mb-6">
-              <li>الدعم: 920000000</li>
-              <li>info@mashwar.app</li>
+              <li>
+                <a href="tel:+966502199098" className="hover:text-white transition-colors">‎+966 50 219 9098</a>
+              </li>
+              <li>
+                <a href="mailto:mshwarsh@gmail.com" className="hover:text-white transition-colors">mshwarsh@gmail.com</a>
+              </li>
+              <li className="text-white/50 text-xs leading-6">بريدة، حي الفلاح، شارع عزيزة بنت مشرف</li>
             </ul>
             <div className="flex flex-col gap-3">
               <a
