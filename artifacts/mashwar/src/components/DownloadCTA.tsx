@@ -79,7 +79,7 @@ export default function DownloadCTA() {
             </div>
 
             {/* Illustration */}
-            <div className="flex-shrink-0 w-full md:w-auto flex justify-center p-8 md:pl-0 md:pr-16">
+            <div className="flex-shrink-0 w-full md:w-auto flex justify-center items-end p-6 md:pl-0 md:pr-10">
               <motion.div
                 className="relative"
                 initial={{ opacity: 0, y: 30 }}
@@ -91,8 +91,8 @@ export default function DownloadCTA() {
                 <motion.img
                   src="/cta-illustration_2.png"
                   alt="مشوار"
-                  className="relative w-[380px] md:w-[520px] lg:w-[580px] drop-shadow-2xl object-contain"
-                  animate={{ y: [0, -10, 0] }}
+                  className="relative w-[280px] md:w-[340px] lg:w-[400px] drop-shadow-2xl object-contain"
+                  animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
                 />
               </motion.div>
