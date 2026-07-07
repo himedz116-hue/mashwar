@@ -79,7 +79,7 @@ const allItems = navGroups.flatMap((g) => g.items);
 
 /* ─── Login Gate ─── */
 function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,17 +88,15 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     e.preventDefault();
     setLoading(true); setError("");
     try {
-      const isEmail = identifier.includes("@");
-      const res = await adminLogin(
-        isEmail ? { email: identifier, password: pw } : { phone: identifier, password: pw }
-      );
+      const res = await adminLogin({ email, password: pw });
       if (res.token) {
         onLogin(res.token);
       } else {
         setError("بيانات الدخول غير صحيحة");
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "بيانات الدخول غير صحيحة");
+      const msg = err instanceof Error ? err.message : "بيانات الدخول غير صحيحة";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -123,12 +121,13 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
 
         <form onSubmit={submit} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 space-y-4">
           <div>
-            <label className="block text-[#D4EDA8] text-sm font-bold mb-2">الهاتف أو البريد الإلكتروني</label>
+            <label className="block text-[#D4EDA8] text-sm font-bold mb-2">البريد الإلكتروني</label>
             <input
-              type="text" value={identifier} onChange={(e) => { setIdentifier(e.target.value); setError(""); }}
-              placeholder="+966 5x xxx xxxx"
+              type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              placeholder="admin@example.com"
               className="w-full py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-[#D4EDA8] transition-all"
               autoFocus
+              autoComplete="email"
             />
           </div>
           <div>
@@ -136,6 +135,7 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
             <input
               type="password" value={pw} onChange={(e) => { setPw(e.target.value); setError(""); }}
               placeholder="••••••••"
+              autoComplete="current-password"
               className={`w-full py-3 px-4 rounded-xl bg-white/10 border text-white placeholder-white/30 outline-none transition-all ${
                 error ? "border-red-400" : "border-white/20 focus:border-[#D4EDA8]"
               }`}
@@ -147,7 +147,7 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
             </p>
           )}
           <button
-            type="submit" disabled={!identifier || !pw || loading}
+            type="submit" disabled={!email || !pw || loading}
             className="w-full py-3.5 rounded-xl bg-gradient-to-l from-[#679632] to-[#1F4A10] text-white font-heading font-black text-base hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-[#1F4A10]/40"
           >
             {loading ? (
