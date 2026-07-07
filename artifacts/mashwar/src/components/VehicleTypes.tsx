@@ -175,67 +175,137 @@ export default function VehicleTypes() {
 
         {/* Bottom CTA banner */}
         <motion.div
-          className="mt-16 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-[#679632]/20"
-          style={{ background: "linear-gradient(135deg, #0d1f06 0%, #1a3a0a 50%, #0d1f06 100%)" }}
+          className="mt-16 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-[#679632]/25"
+          style={{ background: "linear-gradient(135deg, #0a1a04 0%, #163309 40%, #1f4a0d 70%, #0a1a04 100%)" }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          {/* Grid overlay */}
+          {/* Dot pattern */}
           <div
-            className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            className="absolute inset-0 opacity-[0.07] pointer-events-none"
             style={{
-              backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
+              backgroundImage: "radial-gradient(circle, #99C169 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
             }}
           />
           {/* Glow blobs */}
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[#679632]/25 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#99C169]/15 blur-[80px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[#679632]/30 blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-1/2 w-[400px] h-[300px] rounded-full bg-[#99C169]/10 blur-[100px] pointer-events-none" />
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#99C169]/60 to-transparent" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-0">
+          <div className="relative z-10 flex flex-col md:flex-row items-center">
 
-            {/* Text */}
-            <div className="flex-1 p-8 md:p-12 text-right">
-              <motion.span
-                className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/25 text-[#99C169] text-sm font-bold mb-5 border border-[#679632]/30"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
+            {/* Text side */}
+            <div className="flex-1 p-8 md:p-12 lg:p-16 text-right">
+
+              {/* Badge */}
+              <motion.div
+                className="flex justify-end mb-6"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
               >
-                داخل التطبيق
-              </motion.span>
-              <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white mb-4 leading-tight">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#679632]/20 text-[#99C169] text-sm font-bold border border-[#679632]/30">
+                  <span className="w-2 h-2 rounded-full bg-[#99C169] animate-pulse" />
+                  متاح الآن
+                </span>
+              </motion.div>
+
+              {/* Heading */}
+              <motion.h3
+                className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white mb-5 leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.15 }}
+              >
                 اختر مركبتك
                 <br />
                 <span className="text-[#99C169]">من داخل التطبيق</span>
-              </h3>
-              <p className="text-white/55 text-base md:text-lg leading-relaxed mb-8 max-w-md">
-                واجهة سهلة تعرض لك جميع المركبات المتاحة مع أسعارها وتفاصيلها في الوقت الفعلي.
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-8 py-4 rounded-2xl bg-[#679632] text-white font-bold text-lg hover:bg-[#517D2E] transition-colors shadow-xl shadow-[#679632]/40"
+              </motion.h3>
+
+              <motion.p
+                className="text-white/55 text-base md:text-lg leading-relaxed mb-8 max-w-sm"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
               >
-                جرب التطبيق الآن
-              </motion.button>
+                واجهة سهلة تعرض لك جميع المركبات المتاحة مع أسعارها وتفاصيلها في الوقت الفعلي.
+              </motion.p>
+
+              {/* Feature pills */}
+              <motion.div
+                className="flex flex-wrap justify-end gap-2 mb-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.25 }}
+              >
+                {["٤ أنواع مركبات", "أسعار فورية", "سائقين موثقين"].map((f) => (
+                  <span key={f} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/8 border border-white/10 text-white/70 text-sm">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="#99C169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {f}
+                  </span>
+                ))}
+              </motion.div>
+
+              {/* CTA button */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-8 py-4 rounded-2xl bg-[#679632] text-white font-bold text-lg hover:bg-[#517D2E] transition-colors shadow-xl shadow-[#679632]/40"
+                >
+                  جرب التطبيق الآن ←
+                </motion.button>
+              </motion.div>
+
+              {/* Stats row */}
+              <motion.div
+                className="flex justify-end gap-8 mt-8 pt-8 border-t border-white/10"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.35 }}
+              >
+                {[
+                  { val: "١٠٠٠+", label: "سائق مسجل" },
+                  { val: "٢٤/٧", label: "خدمة مستمرة" },
+                  { val: "٩٨٪", label: "رضا العملاء" },
+                ].map((s) => (
+                  <div key={s.label} className="text-right">
+                    <div className="text-xl font-black text-[#99C169]">{s.val}</div>
+                    <div className="text-white/40 text-xs mt-0.5">{s.label}</div>
+                  </div>
+                ))}
+              </motion.div>
             </div>
 
-            {/* App screenshot — right side */}
+            {/* Illustration side */}
             <motion.div
-              className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end px-6 md:px-0 md:pr-10 pb-6 md:pb-0"
+              className="flex-shrink-0 w-full md:w-auto flex items-end justify-center md:justify-end px-6 md:px-0 md:pl-10 pb-0"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.35, duration: 0.7 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
             >
               <motion.img
                 src="/vehicle-app-screen.svg"
                 alt="تطبيق مشوار"
-                className="w-[300px] md:w-[360px] lg:w-[420px] object-contain"
-                style={{ filter: "drop-shadow(0 24px 48px rgba(103,150,50,0.35))" }}
+                className="w-[280px] md:w-[340px] lg:w-[400px] object-contain"
+                style={{ filter: "drop-shadow(0 20px 50px rgba(103,150,50,0.4))" }}
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
               />
