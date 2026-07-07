@@ -30,14 +30,22 @@ export default function DownloadCTA() {
           <div className="relative z-10 flex flex-col md:flex-row items-stretch gap-0">
             {/* Text side */}
             <div className="flex-1 p-8 md:p-12 lg:p-16 text-right flex flex-col justify-center">
-              <motion.span
-                className="inline-block px-4 py-1.5 rounded-full bg-white/20 text-white text-sm font-bold mb-6 border border-white/20"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
+              <motion.div
+                className="inline-flex items-center gap-2.5 mb-6"
+                initial={{ opacity: 0, y: -8 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
               >
-                متاح الآن على المتجرين
-              </motion.span>
+                <span className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#D4EDA8]/40 bg-[#D4EDA8]/10 backdrop-blur-sm">
+                  {/* Pulsing live dot */}
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4EDA8] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D4EDA8]" />
+                  </span>
+                  <span className="text-[#D4EDA8] text-xs font-bold tracking-wide">متاح الآن على المتجرين</span>
+                </span>
+              </motion.div>
               <h2 className="text-4xl md:text-5xl font-heading font-black text-white mb-5 leading-tight">
                 جاهز لتنفيذ
                 <br />
