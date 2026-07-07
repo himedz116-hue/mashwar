@@ -1,40 +1,34 @@
 ---
-name: Admin panel comprehensive upgrades
-description: What was upgraded in the admin panel, which files use real API vs mock data, and multipart upload patterns.
+name: Admin Panel Upgrades
+description: Durable decisions and constraints for the Mashwar admin panel upgrade work.
 ---
 
-# Admin Panel Comprehensive Upgrades
+# Admin Panel — Upgrade Decisions
 
-## Real API sections (all connected to meshwarsv2.meshwars.net)
-- Overview.tsx — getBalance, getDrivers, getOrders
-- UsersSection.tsx — getMessageUsers + getDrivers (dual real API)
-- DriversManagement.tsx — getDrivers, showDriver, acceptDriver, sendDriverNotification
-- DriversKYC.tsx — getDrivers, acceptDriver
-- OrdersManagement.tsx — getOrders, showOrder, driverPayment
-- FinancialManagement.tsx — getBalance + driverPayment (Admin.tsx uses this, NOT FinanceBalance)
-- CarTypesManagement.tsx — getCarTypes + addCarType/editCarType with multipart icon upload
-- CarsManagement.tsx — getCars, addCar, editCar, deleteCar
-- CitiesManagement.tsx — getCities, addCity, editCity, deleteCity
-- IntroductionsManagement.tsx — getIntroductions + multipart image upload (custom fetch, HTTPS)
-- MessagesCenter.tsx — getMessageUsers, getMessages, sendMessage
-- NotificationsCenter.tsx — sendDriverNotification, getDrivers
-- AppSettings.tsx — getTerms, editTerms, getMaxDistance, updateMaxDistance
-- AdminProfile.tsx — getAdminProfile, editAdminProfileWithAvatar (multipart), changeAdminPassword
+## blockUser works for both users and drivers
+The `/api/admin/users/block` endpoint accepts any account UUID — it is not restricted to "users" only. Pass `{ uuid: driver.uuid, status: "blocked" | "active" }` for drivers as well.
 
-## Mock/local-state sections (no backend API for these yet)
-- Marketing.tsx — promo codes are local state only (no API endpoint)
-- Support.tsx — tickets/reviews are local state only (no API endpoint)
+**Why:** Drivers and users share the same account model on the backend; there is no separate driver-block endpoint.
 
-## Multipart upload pattern
-- meshwarApi.ts has `multipartRequest(path, FormData)` helper (POST only)
-- For PUT endpoints: append `_method: PUT` to FormData (Laravel convention)
-- Car type icon: supports both file upload and URL string via `iconFile` field on CarType
-- Admin avatar: `editAdminProfileWithAvatar({ ...form, avatarFile: File })` 
-- Introductions: custom fetch in IntroductionsManagement.tsx (uses API_BASE env var → HTTPS)
+**How to apply:** Whenever blocking any account (user or driver), use `blockUser({ uuid, status })`.
 
-## Admin.tsx import note
-- Uses `FinancialManagement` (not `FinanceBalance`) for the "finance" nav item after upgrade
-- FinanceBalance.tsx still exists but is no longer in the nav
+## `_online` filter key convention
+In DriversManagement, stats cards use canonical API filter keys (`accepted`, `pending`, `rejected`, `all`), but "online" drivers are detected via `d.is_active` (a boolean flag) not a `status` string. The special key `_online` is used as a sentinel in local filter state that maps to `d.is_active === true`.
 
-**Why:** FinancialManagement was rewritten to use real API + charts + driver payout modal.
-**How to apply:** If adding new finance features, edit FinancialManagement.tsx not FinanceBalance.tsx.
+**Why:** The API `status` field does not have an "online" value; presence is tracked by `is_active`.
+
+**How to apply:** When filtering by `_online`, use `d.is_active` not `d.status === "_online"`.
+
+## App store links & contact info are localStorage-only
+There is no backend endpoint for storing Android/iOS store links or contact info. These are persisted to `localStorage` with keys `meshwar_app_links` and `meshwar_contact`. Parse with try/catch + spread defaults to protect against malformed values.
+
+**Why:** API has no settings endpoint for these fields as of this upgrade.
+
+**How to apply:** Always wrap `JSON.parse(localStorage.getItem(...))` in try/catch and spread over safe defaults.
+
+## Privacy policy stored embedded in terms
+The API has only one text field for legal content (`/api/admin/edit_terms` → `terms`). Privacy policy is stored by embedding it after a `\n---PRIVACY---\n` separator in the same field, then split on read.
+
+**Why:** No separate privacy policy endpoint exists; this avoids adding a new API call.
+
+**How to apply:** When reading terms, split on `\n---PRIVACY---\n` to extract both. When saving either, reconstruct and write the combined string.
