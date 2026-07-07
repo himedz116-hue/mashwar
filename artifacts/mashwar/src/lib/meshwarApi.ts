@@ -38,12 +38,12 @@ async function request<T = unknown>(
 
 // ── Auth ──────────────────────────────────────────────────
 export const adminLogin = (data: { email: string; password: string }) =>
-  request<{ token: string; data?: unknown }>("/api/admin/login", {
+  request<{ data: { token: string } }>("/api/admin/login", {
     method: "POST",
     body: JSON.stringify({
       ...data,
       fcm_token: "web-admin-token",
-      device: "web",
+      device: "android",
     }),
   });
 

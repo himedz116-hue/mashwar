@@ -89,8 +89,8 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     setLoading(true); setError("");
     try {
       const res = await adminLogin({ email, password: pw });
-      if (res.token) {
-        onLogin(res.token);
+      if (res.data?.token) {
+        onLogin(res.data.token);
       } else {
         setError("بيانات الدخول غير صحيحة");
       }
