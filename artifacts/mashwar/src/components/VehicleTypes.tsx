@@ -191,30 +191,8 @@ export default function VehicleTypes() {
           {/* Green glow top-right */}
           <div className="absolute -top-10 -right-10 w-[300px] h-[300px] rounded-full bg-[#679632]/10 blur-[80px] pointer-events-none" />
 
-          {/* ── row: illustration LEFT  |  text RIGHT ── */}
+          {/* ── row: text RIGHT  |  illustration LEFT ── */}
           <div className="relative z-10 flex flex-col md:flex-row items-center min-h-[320px]">
-
-            {/* ILLUSTRATION */}
-            <motion.div
-              className="flex-shrink-0 flex items-end self-end justify-center px-8 md:pl-12 pt-8 md:pt-0"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-            >
-              <motion.div
-                className="rounded-2xl overflow-hidden shadow-lg shadow-[#679632]/15 border border-[#679632]/10"
-                style={{ background: "linear-gradient(160deg, #f2fae8 0%, #e5f5d0 100%)" }}
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-              >
-                <img
-                  src="/vehicle-app-screen.svg"
-                  alt="تطبيق مشوار"
-                  className="w-[220px] md:w-[260px] lg:w-[300px] block"
-                />
-              </motion.div>
-            </motion.div>
 
             {/* TEXT */}
             <div className="flex-1 flex flex-col justify-center items-end text-right p-8 md:p-10 lg:p-14">
@@ -283,6 +261,29 @@ export default function VehicleTypes() {
               </motion.div>
 
             </div>
+
+            {/* ILLUSTRATION */}
+            <motion.div
+              className="flex-shrink-0 flex items-end self-end justify-center px-8 md:pr-12 pt-8 md:pt-0"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.7 }}
+            >
+              <motion.div
+                className="rounded-2xl overflow-hidden shadow-lg shadow-[#679632]/15 border border-[#679632]/10"
+                style={{ background: "linear-gradient(160deg, #f2fae8 0%, #e5f5d0 100%)" }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+              >
+                <img
+                  src="/vehicle-app-screen.svg"
+                  alt="تطبيق مشوار"
+                  className="w-[220px] md:w-[260px] lg:w-[300px] block"
+                />
+              </motion.div>
+            </motion.div>
+
           </div>
         </motion.div>
 
