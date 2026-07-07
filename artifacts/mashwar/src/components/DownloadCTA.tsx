@@ -27,9 +27,9 @@ export default function DownloadCTA() {
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#99C169]/20 rounded-full blur-[80px] translate-x-1/4 -translate-y-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[60px] -translate-x-1/4 translate-y-1/4 pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-0">
+          <div className="relative z-10 flex flex-col md:flex-row items-stretch gap-0">
             {/* Text side */}
-            <div className="flex-1 p-10 md:p-16 text-right">
+            <div className="flex-1 p-8 md:p-12 lg:p-16 text-right flex flex-col justify-center">
               <motion.span
                 className="inline-block px-4 py-1.5 rounded-full bg-white/20 text-white text-sm font-bold mb-6 border border-white/20"
                 initial={{ opacity: 0 }}
@@ -79,9 +79,9 @@ export default function DownloadCTA() {
             </div>
 
             {/* Illustration */}
-            <div className="flex-shrink-0 w-full md:w-auto flex justify-center items-end p-6 md:pl-0 md:pr-10">
+            <div className="flex-1 flex justify-center items-end overflow-hidden px-4 md:px-0">
               <motion.div
-                className="relative"
+                className="relative w-full flex justify-center"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -91,7 +91,7 @@ export default function DownloadCTA() {
                 <motion.img
                   src="/cta-illustration_2.png"
                   alt="مشوار"
-                  className="relative w-[280px] md:w-[340px] lg:w-[400px] drop-shadow-2xl object-contain"
+                  className="relative w-full max-w-[520px] drop-shadow-2xl object-contain"
                   animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
                 />
