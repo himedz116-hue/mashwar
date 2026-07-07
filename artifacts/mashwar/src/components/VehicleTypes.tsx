@@ -175,78 +175,102 @@ export default function VehicleTypes() {
 
         {/* Bottom CTA banner */}
         <motion.div
-          className="mt-16 rounded-[2rem] overflow-hidden relative"
-          style={{ background: "linear-gradient(135deg, #0f2405 0%, #1a3a08 45%, #122d04 100%)" }}
+          className="mt-16 rounded-[2rem] overflow-hidden relative shadow-2xl shadow-black/25"
+          style={{ background: "linear-gradient(135deg, #0f2405 0%, #1c3d08 50%, #0f2405 100%)" }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          {/* Dot texture */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #99C169 1.2px, transparent 1.2px)", backgroundSize: "30px 30px" }} />
-          {/* Glow right */}
-          <div className="absolute top-0 right-0 w-[500px] h-full bg-[#679632]/20 blur-[100px] pointer-events-none" />
-          {/* Accent top line */}
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#99C169]/50 to-transparent" />
+          {/* textures & glows */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #99C169 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[#679632]/25 blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#99C169]/10 blur-[80px] pointer-events-none" />
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#99C169]/40 to-transparent" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-stretch">
+          {/* ── single row: illustration LEFT  |  text RIGHT ── */}
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-0 min-h-[340px]">
 
-            {/* ── TEXT side (right in RTL) ── */}
-            <div className="flex-1 flex flex-col justify-center p-10 md:p-14 text-right order-2 md:order-1">
+            {/* ILLUSTRATION — sits on the left edge, flush to bottom */}
+            <motion.div
+              className="flex-shrink-0 flex items-end justify-center self-end px-10 pt-10 md:pt-0 md:pl-14"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.7 }}
+            >
+              <motion.div
+                className="rounded-2xl overflow-hidden shadow-xl shadow-black/30"
+                style={{ background: "linear-gradient(160deg, #eef7e2 0%, #dff0cb 100%)" }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+              >
+                <img
+                  src="/vehicle-app-screen.svg"
+                  alt="تطبيق مشوار"
+                  className="w-[220px] md:w-[260px] lg:w-[300px] block"
+                />
+              </motion.div>
+            </motion.div>
+
+            {/* TEXT — fills remaining space on the right */}
+            <div className="flex-1 flex flex-col justify-center items-end text-right p-8 md:p-12 lg:p-14">
 
               <motion.span
-                className="inline-flex self-end items-center gap-2 px-3 py-1 rounded-full text-[#99C169] text-xs font-bold border border-[#679632]/40 bg-[#679632]/15 mb-6"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#679632]/20 text-[#99C169] text-xs font-bold border border-[#679632]/30 mb-5"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#99C169] animate-pulse" /> داخل التطبيق
+                <span className="w-1.5 h-1.5 rounded-full bg-[#99C169] animate-pulse" />
+                داخل التطبيق
               </motion.span>
 
               <motion.h3
-                className="text-3xl md:text-4xl xl:text-5xl font-heading font-black text-white mb-4 leading-snug"
+                className="text-3xl md:text-4xl lg:text-5xl font-heading font-black text-white leading-tight mb-4"
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
               >
-                اختر مركبتك<br />
+                اختر مركبتك
+                <br />
                 <span className="text-[#99C169]">من داخل التطبيق</span>
               </motion.h3>
 
               <motion.p
-                className="text-white/55 text-base leading-relaxed mb-8 max-w-xs"
+                className="text-white/55 text-sm md:text-base leading-relaxed mb-7 max-w-sm"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
               >
                 واجهة بسيطة تعرض كل المركبات بأسعارها وتقييمات السائقين لحظةً بلحظة.
               </motion.p>
 
-              {/* Features */}
               <motion.div
-                className="flex flex-col gap-3 mb-9 items-end"
+                className="flex flex-col gap-2.5 mb-8"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.25 }}
               >
                 {["٤ أنواع مركبات للاختيار", "أسعار شفافة قبل التأكيد", "سائقون موثقون ومُقيَّمون"].map(f => (
-                  <div key={f} className="flex items-center gap-2.5 text-white/70 text-sm">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <div key={f} className="flex items-center justify-end gap-2.5 text-white/70 text-sm">
+                    <span>{f}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
                       <path d="M20 6L9 17l-5-5" stroke="#99C169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    {f}
                   </div>
                 ))}
               </motion.div>
 
-              {/* Button + stats */}
               <motion.div
-                className="flex flex-wrap items-center justify-end gap-6"
+                className="flex items-center gap-6 flex-wrap justify-end"
                 initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
               >
-                <div className="flex gap-5 text-right">
+                {/* Stats */}
+                <div className="flex items-center gap-5">
                   {[{ v: "+١٠٠٠", l: "سائق" }, { v: "٩٨٪", l: "رضا" }, { v: "٢٤/٧", l: "خدمة" }].map((s, i) => (
                     <div key={s.l} className="flex items-center gap-5">
-                      {i > 0 && <div className="h-8 w-px bg-white/10" />}
-                      <div>
-                        <div className="text-lg font-black text-[#99C169]">{s.v}</div>
-                        <div className="text-white/35 text-xs">{s.l}</div>
+                      {i > 0 && <div className="w-px h-8 bg-white/10" />}
+                      <div className="text-right">
+                        <div className="text-base font-black text-[#99C169] leading-none">{s.v}</div>
+                        <div className="text-white/35 text-xs mt-0.5">{s.l}</div>
                       </div>
                     </div>
                   ))}
                 </div>
+                {/* Button */}
                 <motion.button
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
                   className="px-7 py-3.5 rounded-xl bg-[#679632] hover:bg-[#517D2E] text-white font-bold text-sm transition-colors shadow-lg shadow-[#679632]/30"
@@ -254,28 +278,8 @@ export default function VehicleTypes() {
                   جرب التطبيق الآن
                 </motion.button>
               </motion.div>
+
             </div>
-
-            {/* ── ILLUSTRATION side ── */}
-            <motion.div
-              className="flex-shrink-0 order-1 md:order-2 flex items-end justify-center md:justify-end"
-              initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.25, duration: 0.7 }}
-            >
-              {/* white frosted card that intentionally frames the illustration */}
-              <div className="relative m-8 md:m-0 md:mr-10 md:mb-0 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-black/40"
-                style={{ background: "linear-gradient(160deg,#f0f9e4 0%,#e8f5d8 100%)" }}>
-                <motion.img
-                  src="/vehicle-app-screen.svg"
-                  alt="تطبيق مشوار"
-                  className="w-[260px] md:w-[300px] lg:w-[340px] block"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                />
-                {/* top shimmer */}
-                <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
-              </div>
-            </motion.div>
-
           </div>
         </motion.div>
 
