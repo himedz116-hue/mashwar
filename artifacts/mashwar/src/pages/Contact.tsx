@@ -68,18 +68,36 @@ export default function Contact() {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const e2 = validate();
     if (Object.keys(e2).length) { setErrors(e2); return; }
     setLoading(true);
-    // Open mailto with pre-filled content
-    const subject = encodeURIComponent(`رسالة من ${form.name} — مشوار`);
-    const body = encodeURIComponent(
-      `الاسم: ${form.name}\nرقم الجوال: +966${form.phone}\n\nالرسالة:\n${form.message}`
-    );
-    window.open(`mailto:mshwarsh@gmail.com?subject=${subject}&body=${body}`, "_blank");
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 600);
+
+    try {
+      const { error } = await supabase
+        .from("contact_messages")
+        .insert({
+          name: form.name.trim(),
+          phone: `+966${form.phone.trim()}`,
+          message: form.message.trim(),
+        });
+
+      if (error) {
+        console.error("Supabase error:", error);
+        // Fallback to mailto if DB insert fails
+        const subject = encodeURIComponent(`رسالة من ${form.name} — مشوار`);
+        const body = encodeURIComponent(
+          `الاسم: ${form.name}\nرقم الجوال: +966${form.phone}\n\nالرسالة:\n${form.message}`
+        );
+        window.open(`mailto:mshwarsh@gmail.com?subject=${subject}&body=${body}`, "_blank");
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+      setSubmitted(true);
+    }
   };
 
   const handlePhone = (v: string) => {
