@@ -31,7 +31,7 @@ export default function Footer() {
                 { label: "الرئيسية", href: "#hero" },
                 { label: "مركباتنا", href: "#vehicles" },
                 { label: "المميزات", href: "#features" },
-                { label: "تواصل معنا", href: "#" },
+                { label: "تواصل معنا", href: "/contact" },
               ].map((link) => (
                 <li key={link.label}>
                   <a href={link.href} className="hover:text-white transition-colors">
