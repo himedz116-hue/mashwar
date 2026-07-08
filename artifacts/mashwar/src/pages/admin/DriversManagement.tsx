@@ -153,6 +153,7 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
   const [activeTab, setActiveTab] = useState("info");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     showDriver(uuid)
