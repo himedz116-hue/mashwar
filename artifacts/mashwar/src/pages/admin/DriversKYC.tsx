@@ -163,13 +163,37 @@ function DriverFullModal({ uuid, onClose, onAction, onBlock, showToast }: {
                 <p className="text-sm text-gray-500 flex items-center justify-center gap-1 mt-1" dir="ltr"><Phone className="w-3.5 h-3.5 text-[#679632]"/> {driver.phone}</p>
                 <div className="mt-2"><StatusBadge status={driver.status} /></div>
                 
-                {/* Advanced Android Details Focus (as requested by user) */}
-                <div className="mt-4 w-full bg-green-50 rounded-xl p-3 border border-green-100 flex flex-col gap-2 text-right">
-                  <p className="text-xs font-bold text-green-800 flex items-center gap-1.5 justify-center"><Smartphone className="w-4 h-4"/> تفاصيل جهاز الأندرويد</p>
-                  <div className="text-[10px] text-green-700 flex justify-between"><span>الإصدار:</span> <span className="font-bold font-mono">Android 13 (Tiramisu)</span></div>
-                  <div className="text-[10px] text-green-700 flex justify-between"><span>الموديل:</span> <span className="font-bold font-mono">SM-S918B (S23 Ultra)</span></div>
-                  <div className="text-[10px] text-green-700 flex justify-between"><span>حالة التطبيق:</span> <span className="font-bold">محدث لآخر نسخة</span></div>
-                </div>
+                {/* Device Info */}
+                {(() => {
+                  const raw = `${driver.device ?? ""} ${driver.os_version ?? ""}`.toLowerCase();
+                  const isIos = raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple");
+                  const isAndroid = raw.includes("android");
+                  const hasInfo = driver.device || driver.os_version;
+                  if (!hasInfo) return null;
+                  const bgCls = isIos ? "bg-gray-50 border-gray-200" : isAndroid ? "bg-green-50 border-green-100" : "bg-gray-50 border-gray-200";
+                  const textCls = isIos ? "text-gray-800" : isAndroid ? "text-green-800" : "text-gray-600";
+                  const Icon = isIos ? Apple : Smartphone;
+                  const label = isIos ? "iOS" : isAndroid ? "Android" : "جهاز";
+                  return (
+                    <div className={`mt-4 w-full rounded-xl p-3 border flex flex-col gap-2 text-right ${bgCls}`}>
+                      <p className={`text-xs font-bold flex items-center gap-1.5 justify-center ${textCls}`}>
+                        <Icon className="w-4 h-4"/> جهاز {label}
+                      </p>
+                      {driver.os_version && (
+                        <div className={`text-[10px] flex justify-between ${isIos ? "text-gray-600" : "text-green-700"}`}>
+                          <span>الإصدار:</span>
+                          <span className="font-bold font-mono">{driver.os_version}</span>
+                        </div>
+                      )}
+                      {driver.device && (
+                        <div className={`text-[10px] flex justify-between ${isIos ? "text-gray-600" : "text-green-700"}`}>
+                          <span>الجهاز:</span>
+                          <span className="font-bold font-mono">{driver.device}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="space-y-1 mb-6">

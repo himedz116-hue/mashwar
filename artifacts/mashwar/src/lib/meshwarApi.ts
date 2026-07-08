@@ -376,6 +376,8 @@ export interface User {
   trips_count?: number;
   rating?: number;
   created_at?: string;
+  device?: string;
+  os_version?: string;
 }
 export interface Driver {
   uuid: string;

@@ -11,6 +11,14 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function detectOS(device?: string, osVersion?: string): "ios" | "android" | "unknown" {
+  const raw = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
+  if (!raw) return "unknown";
+  if (raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple")) return "ios";
+  if (raw.includes("android")) return "android";
+  return "unknown";
+}
+
 const statusMap: Record<string, { label: string; cls: string }> = {
   accepted: { label: "موثّق",          cls: "bg-green-100 text-green-700" },
   rejected:  { label: "مرفوض",         cls: "bg-red-100 text-red-600" },
@@ -270,7 +278,26 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                             <div><p className="text-xs text-gray-400">تاريخ الميلاد</p><p className="font-bold text-[#1F4A10]">{driver.dob || "—"} {driver.age ? `(${driver.age} سنة)` : ""}</p></div>
                             <div><p className="text-xs text-gray-400">المدينة</p><p className="font-bold text-[#1F4A10]">{driver.city?.name || "—"}</p></div>
                             <div><p className="text-xs text-gray-400">البريد الإلكتروني</p><p className="font-bold text-[#1F4A10]">{driver.email || "—"}</p></div>
-                            <div className="col-span-2 mt-2 pt-2 border-t border-gray-50"><p className="text-xs text-gray-400">نظام التشغيل والجهاز</p><p className="font-bold text-[#1F4A10] flex items-center gap-2 mt-1">{driver.device?.toLowerCase().includes("ios") || driver.os_version?.toLowerCase().includes("ios") ? <Apple className="w-4 h-4"/> : <Smartphone className="w-4 h-4"/>} {driver.device || "Android"} — {driver.os_version || "12.0"}</p></div>
+                            <div className="col-span-2 mt-2 pt-2 border-t border-gray-50">
+                              <p className="text-xs text-gray-400">نظام التشغيل والجهاز</p>
+                              {(() => {
+                                const os = detectOS(driver.device, driver.os_version);
+                                const Icon = os === "ios" ? Apple : Smartphone;
+                                const label = os === "ios" ? "iOS" : os === "android" ? "Android" : "غير معروف";
+                                const textCls = os === "ios" ? "text-gray-700" : os === "android" ? "text-green-700" : "text-gray-400";
+                                return (
+                                  <p className={`font-bold flex items-center gap-2 mt-1 ${textCls}`}>
+                                    <Icon className="w-4 h-4" />
+                                    {label}
+                                    {(driver.device || driver.os_version) && (
+                                      <span className="text-xs font-mono text-gray-400">
+                                        {[driver.device, driver.os_version].filter(Boolean).join(" — ")}
+                                      </span>
+                                    )}
+                                  </p>
+                                );
+                              })()}
+                            </div>
                           </div>
                         </div>
 

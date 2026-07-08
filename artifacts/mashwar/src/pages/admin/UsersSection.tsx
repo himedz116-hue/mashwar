@@ -10,6 +10,38 @@ import {
   MessageSquare,
 } from "lucide-react";
 
+function detectOS(device?: string, osVersion?: string): "ios" | "android" | "unknown" {
+  const raw = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
+  if (!raw) return "unknown";
+  if (raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple")) return "ios";
+  if (raw.includes("android")) return "android";
+  return "unknown";
+}
+
+function PlatformBadge({ device, osVersion }: { device?: string; osVersion?: string }) {
+  const os = detectOS(device, osVersion);
+  if (os === "ios") return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg">
+      <Apple className="w-3.5 h-3.5 text-gray-700" />
+      <span className="text-xs font-bold text-gray-700">iOS</span>
+      {osVersion && <span className="text-[10px] text-gray-400 font-mono">{osVersion}</span>}
+    </div>
+  );
+  if (os === "android") return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 rounded-lg">
+      <Smartphone className="w-3.5 h-3.5 text-green-700" />
+      <span className="text-xs font-bold text-green-700">Android</span>
+      {osVersion && <span className="text-[10px] text-green-600 font-mono">{osVersion}</span>}
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg">
+      <Smartphone className="w-3.5 h-3.5 text-gray-400" />
+      <span className="text-xs font-bold text-gray-400">غير معروف</span>
+    </div>
+  );
+}
+
 function Avatar({ name, avatar, size = 9 }: { name?: string; avatar?: string; size?: number }) {
   const [err, setErr] = useState(false);
   const letter = ((name ?? "؟")[0] ?? "؟").toUpperCase();
@@ -98,7 +130,7 @@ function UserDetailModal({ user, onClose, onBlock, onDelete }: {
               { label: "الرحلات", value: user.trips_count ?? "—", icon: Car, color: "#1F4A10", bg: "#D4EDA8" },
               { label: "التقييم", value: user.rating ? `⭐ ${user.rating}` : "—", icon: Star, color: "#d97706", bg: "#fef3c7" },
               { label: "تاريخ التسجيل", value: user.created_at ? new Date(user.created_at).toLocaleDateString("ar-SA") : "—", icon: Calendar, color: "#2563eb", bg: "#dbeafe" },
-              { label: "المنصة", value: "Android & iOS", icon: Smartphone, color: "#679632", bg: "#D4EDA8" },
+              { label: "المنصة", value: detectOS(user.device, user.os_version) === "ios" ? "iOS" : detectOS(user.device, user.os_version) === "android" ? "Android" : "غير معروف", icon: detectOS(user.device, user.os_version) === "ios" ? Apple : Smartphone, color: detectOS(user.device, user.os_version) === "ios" ? "#374151" : "#679632", bg: detectOS(user.device, user.os_version) === "ios" ? "#f3f4f6" : "#D4EDA8" },
             ].map((s) => (
               <div key={s.label} className="rounded-xl p-3 flex items-center gap-2.5" style={{ background: s.bg + "40", border: `1px solid ${s.bg}` }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: s.bg }}>
@@ -112,17 +144,10 @@ function UserDetailModal({ user, onClose, onBlock, onDelete }: {
             ))}
           </div>
 
-          {/* Platform badges */}
-          <div className="flex gap-2 p-3 bg-[#F6FAF0] rounded-xl border border-[#D4EDA8]">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 rounded-lg">
-              <Smartphone className="w-3.5 h-3.5 text-green-700" />
-              <span className="text-xs font-bold text-green-700">Android</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg">
-              <Apple className="w-3.5 h-3.5 text-gray-700" />
-              <span className="text-xs font-bold text-gray-700">iOS</span>
-            </div>
-            <span className="text-xs text-gray-400 self-center">مستخدم متوافق مع كلا المنصتين</span>
+          {/* Platform badge */}
+          <div className="flex items-center gap-2 p-3 bg-[#F6FAF0] rounded-xl border border-[#D4EDA8]">
+            <PlatformBadge device={user.device} osVersion={user.os_version} />
+            {user.device && <span className="text-xs text-gray-400 font-mono">{user.device}</span>}
           </div>
 
           {/* Actions */}
