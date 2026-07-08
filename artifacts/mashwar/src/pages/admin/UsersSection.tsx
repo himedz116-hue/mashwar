@@ -11,11 +11,22 @@ import {
 } from "lucide-react";
 
 function Avatar({ name, avatar, size = 9 }: { name?: string; avatar?: string; size?: number }) {
+  const [err, setErr] = useState(false);
   const s = `w-${size} h-${size}`;
-  if (avatar) return <img src={getImageUrl(avatar)} className={`${s} rounded-xl object-cover flex-shrink-0`} />;
+  const letter = ((name ?? "؟")[0] ?? "؟").toUpperCase();
+  const showImg = avatar && !err && !avatar.toLowerCase().includes("placeholder");
+  if (showImg) {
+    return (
+      <img
+        src={getImageUrl(avatar!)}
+        className={`${s} rounded-xl object-cover flex-shrink-0`}
+        onError={() => setErr(true)}
+      />
+    );
+  }
   return (
-    <div className={`${s} rounded-xl bg-gradient-to-br from-[#D4EDA8] to-[#a8d060] flex items-center justify-center flex-shrink-0`}>
-      <span className="font-black text-[#1F4A10] text-sm">{(name ?? "؟")[0]}</span>
+    <div className={`${s} rounded-xl bg-[#D4EDA8] flex items-center justify-center flex-shrink-0`}>
+      <span className="font-black text-[#1F4A10]" style={{ fontSize: `${size * 4}px` }}>{letter}</span>
     </div>
   );
 }

@@ -26,10 +26,21 @@ function Badge({ status }: { status?: string }) {
 }
 
 function Avatar({ name, avatar, size = 9 }: { name?: string; avatar?: string; size?: number }) {
-  if (avatar) return <img src={getImageUrl(avatar)} className={`w-${size} h-${size} rounded-xl object-cover border-2 border-white shadow-sm`} />;
+  const [err, setErr] = useState(false);
+  const letter = ((name ?? "?")[0] ?? "?").toUpperCase();
+  const showImg = avatar && !err && !avatar.toLowerCase().includes("placeholder");
+  if (showImg) {
+    return (
+      <img
+        src={getImageUrl(avatar!)}
+        className={`w-${size} h-${size} rounded-xl object-cover border-2 border-white shadow-sm flex-shrink-0`}
+        onError={() => setErr(true)}
+      />
+    );
+  }
   return (
-    <div className={`w-${size} h-${size} rounded-xl bg-gradient-to-br from-[#D4EDA8] to-[#679632] flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm`}>
-      <span className="font-black text-white text-lg">{(name ?? "?")[0]}</span>
+    <div className={`w-${size} h-${size} rounded-xl bg-[#D4EDA8] flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm`}>
+      <span className="font-black text-[#1F4A10]" style={{ fontSize: `${size * 4}px` }}>{letter}</span>
     </div>
   );
 }
