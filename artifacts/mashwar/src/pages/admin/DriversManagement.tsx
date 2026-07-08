@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import {
   getDrivers, showDriver, sendDriverNotification, acceptDriver,
-  blockUser, type Driver,
+  blockUser, getOrders, getImageUrl, type Driver, type Order
 } from "@/lib/meshwarApi";
 import {
   Search, RefreshCw, Star, Phone, MapPin, Car, CheckCircle,
   XCircle, Clock, Eye, ChevronDown, Bell, Send, X, Shield,
-  Ban, Smartphone, Apple, UserCheck, AlertTriangle, Trash2,
+  Ban, Smartphone, Apple, UserCheck, AlertTriangle, User,
+  Calendar, CreditCard, ChevronRight, Activity, Navigation, Image as ImageIcon
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const statusMap: Record<string, { label: string; cls: string }> = {
   accepted: { label: "موثّق",          cls: "bg-green-100 text-green-700" },
@@ -24,10 +26,10 @@ function Badge({ status }: { status?: string }) {
 }
 
 function Avatar({ name, avatar, size = 9 }: { name?: string; avatar?: string; size?: number }) {
-  if (avatar) return <img src={avatar} className={`w-${size} h-${size} rounded-xl object-cover`} />;
+  if (avatar) return <img src={getImageUrl(avatar)} className={`w-${size} h-${size} rounded-xl object-cover border-2 border-white shadow-sm`} />;
   return (
-    <div className={`w-${size} h-${size} rounded-xl bg-[#D4EDA8] flex items-center justify-center flex-shrink-0`}>
-      <span className="font-black text-[#1F4A10] text-sm">{(name ?? "?")[0]}</span>
+    <div className={`w-${size} h-${size} rounded-xl bg-gradient-to-br from-[#D4EDA8] to-[#679632] flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm`}>
+      <span className="font-black text-white text-lg">{(name ?? "?")[0]}</span>
     </div>
   );
 }
@@ -59,57 +61,53 @@ function NotifModal({ driver, onClose }: { driver: Driver; onClose: () => void }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <form className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4" onSubmit={send} onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <motion.form 
+        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4" onSubmit={send} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D4EDA8] flex items-center justify-center">
-              <Bell className="w-5 h-5 text-[#1F4A10]" />
+            <div className="w-12 h-12 rounded-xl bg-[#F6FAF0] flex items-center justify-center border border-[#D4EDA8]">
+              <Bell className="w-6 h-6 text-[#1F4A10]" />
             </div>
             <div>
-              <h3 className="font-heading font-black text-[#1F4A10]">إرسال إشعار</h3>
-              <p className="text-xs text-gray-400">إلى: {driver.name}</p>
+              <h3 className="font-heading font-black text-[#1F4A10] text-lg">إرسال إشعار</h3>
+              <p className="text-sm text-gray-500">إلى: {driver.name}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+          <button type="button" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        {/* Platform */}
-        <div className="flex gap-2 p-2.5 bg-[#F6FAF0] rounded-xl border border-[#D4EDA8]">
-          <span className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">
-            <Smartphone className="w-3 h-3" /> Android
-          </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
-            <Apple className="w-3 h-3" /> iOS
-          </span>
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap pt-2">
           {quickTemplates.map((t, i) => (
             <button key={i} type="button" onClick={() => { setTitle(t.title); setBody(t.body); }}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#F6FAF0] text-[#679632] hover:bg-[#D4EDA8] transition-colors">
+              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#F6FAF0] text-[#679632] hover:bg-[#D4EDA8] transition-colors border border-[#D4EDA8]">
               {t.title}
             </button>
           ))}
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1">العنوان *</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان الإشعار..."
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]" />
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">العنوان *</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان الإشعار..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] focus:ring-4 focus:ring-[#D4EDA8]/50 transition-all bg-gray-50/50" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">المحتوى *</label>
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="محتوى الإشعار..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] focus:ring-4 focus:ring-[#D4EDA8]/50 transition-all bg-gray-50/50 resize-none" />
+          </div>
         </div>
-        <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1">المحتوى *</label>
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} placeholder="محتوى الإشعار..."
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] resize-none" />
-        </div>
-        {err && <p className="text-red-500 text-xs">{err}</p>}
-        {done && <p className="text-green-600 text-sm font-bold flex items-center gap-1"><CheckCircle className="w-4 h-4" /> تم الإرسال بنجاح!</p>}
+        
+        {err && <p className="text-red-500 text-xs bg-red-50 p-2 rounded-lg">{err}</p>}
+        {done && <p className="text-green-600 text-sm font-bold flex items-center gap-1 bg-green-50 p-2 rounded-lg"><CheckCircle className="w-4 h-4" /> تم الإرسال بنجاح!</p>}
+        
         <button type="submit" disabled={sending}
-          className="w-full py-3 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] disabled:opacity-50 flex items-center justify-center gap-2">
-          <Send className="w-4 h-4" /> {sending ? "جاري الإرسال..." : "إرسال"}
+          className="w-full py-3.5 rounded-xl bg-gradient-to-l from-[#1F4A10] to-[#2A5A14] text-white font-bold text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#1F4A10]/20 transition-all active:scale-[0.98]">
+          <Send className="w-4 h-4" /> {sending ? "جاري الإرسال..." : "إرسال الإشعار"}
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 }
@@ -126,6 +124,9 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
   const [rejReason, setRejReason] = useState("");
   const [acting, setActing] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [activeTab, setActiveTab] = useState("info");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   useEffect(() => {
     showDriver(uuid)
@@ -133,6 +134,16 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [uuid]);
+
+  useEffect(() => {
+    if (activeTab === "trips" && driver) {
+      setLoadingOrders(true);
+      getOrders({ driver_uuid: driver.uuid })
+        .then((r) => setOrders(r.data ?? []))
+        .catch(() => {})
+        .finally(() => setLoadingOrders(false));
+    }
+  }, [activeTab, driver]);
 
   const handleAccept = async () => {
     if (!driver) return;
@@ -155,135 +166,327 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
     catch { /* ignore */ } finally { setBlocking(false); }
   };
 
+  const tabs = [
+    { id: "info", label: "المعلومات الأساسية", icon: User },
+    { id: "kyc", label: "توثيق الحساب", icon: Shield },
+    { id: "vehicle", label: "المركبة", icon: Car },
+    { id: "trips", label: "سجل الطلبات", icon: Navigation },
+  ];
+
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="font-heading font-black text-[#1F4A10] text-lg">تفاصيل السائق</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XCircle className="w-5 h-5" /></button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md" onClick={onClose}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+          className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" 
+          onClick={(e) => e.stopPropagation()}>
+          
+          {/* Header */}
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                <UserCheck className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-heading font-black text-[#1F4A10] text-xl">ملف السائق</h3>
+                <p className="text-xs text-gray-500">عرض كافة تفاصيل السائق والمركبة والطلبات</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {driver && (
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F6FAF0] border border-[#D4EDA8] ml-4">
+                  <Smartphone className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-xs font-bold text-[#679632]">تطبيق السائق متصل</span>
+                </div>
+              )}
+              <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+            </div>
           </div>
-          <div className="p-6">
-            {loading && <div className="flex justify-center py-8"><div className="w-8 h-8 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" /></div>}
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            {driver && (
-              <div className="space-y-5">
-                {/* Profile header */}
-                <div className="flex items-center gap-4 p-4 bg-[#F6FAF0] rounded-2xl">
-                  <Avatar name={driver.name} avatar={driver.avatar} size={14} />
-                  <div className="flex-1">
-                    <p className="font-heading font-black text-[#1F4A10] text-lg">{driver.name}</p>
-                    <p className="text-sm text-gray-500 flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{driver.phone}</p>
-                    {driver.email && <p className="text-xs text-gray-400 mt-0.5">{driver.email}</p>}
-                  </div>
+
+          {loading ? (
+            <div className="flex-1 flex justify-center items-center py-20 bg-gray-50/30">
+              <div className="w-10 h-10 border-4 border-[#D4EDA8] border-t-[#679632] rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="flex-1 flex flex-col justify-center items-center py-20 bg-gray-50/30">
+              <XCircle className="w-16 h-16 text-red-300 mb-4" />
+              <p className="text-red-500 font-bold text-lg">{error}</p>
+            </div>
+          ) : driver ? (
+            <div className="flex-1 flex flex-col sm:flex-row overflow-hidden bg-gray-50/30">
+              
+              {/* Sidebar Tabs */}
+              <div className="w-full sm:w-64 bg-white border-b sm:border-b-0 sm:border-l border-gray-100 p-4 flex flex-row sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto shrink-0">
+                {/* Driver Summary Mini Profile */}
+                <div className="hidden sm:flex flex-col items-center p-4 bg-gradient-to-b from-[#F6FAF0] to-white rounded-2xl border border-[#D4EDA8]/50 mb-4">
+                  <Avatar name={driver.name} avatar={driver.avatar} size={20} />
+                  <p className="font-heading font-black text-[#1F4A10] mt-3 text-center">{driver.name}</p>
                   <Badge status={driver.status} />
                 </div>
 
-                {/* Platform */}
-                <div className="flex gap-2 p-3 bg-[#F6FAF0] rounded-xl border border-[#D4EDA8]">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">
-                    <Smartphone className="w-3 h-3" /> Android
-                  </span>
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
-                    <Apple className="w-3 h-3" /> iOS
-                  </span>
-                  <span className="text-xs text-gray-400 self-center">متوافق مع كلا المنصتين</span>
-                </div>
-
-                {/* Stats grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: "التقييم", value: driver.rating ? `⭐ ${driver.rating}` : "—" },
-                    { label: "عدد الرحلات", value: driver.trips_count ?? "—" },
-                    { label: "الرصيد", value: driver.balance != null ? `${driver.balance} ريال` : "—" },
-                    { label: "المدينة", value: driver.city?.name ?? "—" },
-                    { label: "نوع السيارة", value: driver.car?.car_type?.name ?? "—" },
-                    { label: "رقم اللوحة", value: driver.car?.plate_number ?? "—" },
-                    { label: "الموديل", value: driver.car?.model ?? "—" },
-                    { label: "السنة", value: driver.car?.year ?? "—" },
-                  ].map((row) => (
-                    <div key={row.label} className="bg-[#F6FAF0] rounded-xl p-3">
-                      <p className="text-xs text-gray-500">{row.label}</p>
-                      <p className="font-bold text-[#1F4A10] mt-0.5 text-sm">{String(row.value)}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* KYC Docs */}
-                {(driver.national_id || driver.driving_license || driver.car_license) && (
-                  <div>
-                    <p className="font-bold text-[#1F4A10] text-sm mb-3 flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-[#679632]" /> وثائق التوثيق (KYC)
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { label: "الهوية الوطنية", url: driver.national_id },
-                        { label: "رخصة القيادة", url: driver.driving_license },
-                        { label: "رخصة السيارة", url: driver.car_license },
-                      ].map((doc) => (
-                        doc.url ? (
-                          <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer"
-                            className="block bg-[#F6FAF0] rounded-xl p-3 text-center hover:bg-[#D4EDA8] transition-colors border border-[#D4EDA8]/50">
-                            <p className="text-xs text-gray-500">{doc.label}</p>
-                            <p className="text-xs text-[#679632] font-bold mt-1">عرض ↗</p>
-                          </a>
-                        ) : (
-                          <div key={doc.label} className="bg-gray-50 rounded-xl p-3 text-center opacity-50">
-                            <p className="text-xs text-gray-400">{doc.label}</p>
-                            <p className="text-xs text-gray-300 mt-1">غير متوفر</p>
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* KYC Actions (for pending drivers) */}
-                {driver.status === "pending" && (
-                  <div className="border border-amber-200 rounded-2xl p-4 bg-amber-50 space-y-3">
-                    <p className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4" /> توثيق السائق - قيد المراجعة
-                    </p>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1.5">سبب الرفض (اختياري)</label>
-                      <input
-                        value={rejReason} onChange={(e) => setRejReason(e.target.value)}
-                        placeholder="اكتب سبب الرفض إن وجد..."
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={handleAccept} disabled={acting}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 disabled:opacity-50 transition-colors">
-                        <CheckCircle className="w-4 h-4" /> قبول التوثيق
-                      </button>
-                      <button onClick={handleReject} disabled={acting}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 disabled:opacity-50 transition-colors">
-                        <XCircle className="w-4 h-4" /> رفض
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <button onClick={() => setShowNotif(true)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] transition-colors">
-                    <Bell className="w-4 h-4" /> إرسال إشعار
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                      activeTab === tab.id 
+                        ? "bg-[#1F4A10] text-white shadow-md shadow-[#1F4A10]/20" 
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-400"}`} />
+                    {tab.label}
                   </button>
-                  <a href={`tel:${driver.phone}`}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F6FAF0] text-[#1F4A10] font-bold text-sm hover:bg-[#D4EDA8] transition-colors">
-                    <Phone className="w-4 h-4" /> اتصال
-                  </a>
-                  <button onClick={handleBlock} disabled={blocking}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 disabled:opacity-50 transition-colors">
-                    <Ban className="w-4 h-4" /> {blocking ? "..." : "حظر"}
-                  </button>
-                </div>
+                ))}
               </div>
-            )}
-          </div>
-        </div>
+
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                <AnimatePresence mode="wait">
+                  
+                  {activeTab === "info" && (
+                    <motion.div key="info" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                          <h4 className="text-sm font-bold text-gray-400 mb-4 flex items-center gap-2"><User className="w-4 h-4" /> البيانات الشخصية التقنية</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div><p className="text-xs text-gray-400">الاسم الكامل</p><p className="font-bold text-[#1F4A10]">{driver.name}</p></div>
+                            <div><p className="text-xs text-gray-400">رقم الهاتف</p><p className="font-bold text-[#1F4A10] flex items-center gap-2" dir="ltr"><Phone className="w-3.5 h-3.5 text-[#679632]"/> {driver.phone}</p></div>
+                            <div><p className="text-xs text-gray-400">تاريخ الميلاد</p><p className="font-bold text-[#1F4A10]">{driver.dob || "—"} {driver.age ? `(${driver.age} سنة)` : ""}</p></div>
+                            <div><p className="text-xs text-gray-400">المدينة</p><p className="font-bold text-[#1F4A10]">{driver.city?.name || "—"}</p></div>
+                            <div><p className="text-xs text-gray-400">البريد الإلكتروني</p><p className="font-bold text-[#1F4A10]">{driver.email || "—"}</p></div>
+                            <div className="col-span-2 mt-2 pt-2 border-t border-gray-50"><p className="text-xs text-gray-400">نظام التشغيل والجهاز</p><p className="font-bold text-[#1F4A10] flex items-center gap-2 mt-1">{driver.device?.toLowerCase().includes("ios") || driver.os_version?.toLowerCase().includes("ios") ? <Apple className="w-4 h-4"/> : <Smartphone className="w-4 h-4"/>} {driver.device || "Android"} — {driver.os_version || "12.0"}</p></div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                          <h4 className="text-sm font-bold text-gray-400 mb-4 flex items-center gap-2"><Activity className="w-4 h-4" /> الإحصائيات والأداء</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                              <p className="text-xs text-blue-600 font-bold mb-1">الرحلات المكتملة</p>
+                              <p className="text-2xl font-black text-blue-800">{driver.trips_count ?? 0}</p>
+                            </div>
+                            <div className="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                              <p className="text-xs text-amber-600 font-bold mb-1 flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-500" /> التقييم</p>
+                              <p className="text-2xl font-black text-amber-800">{driver.rating ?? "—"}</p>
+                            </div>
+                            <div className="bg-green-50 p-3 rounded-xl border border-green-100 col-span-2 flex justify-between items-center">
+                              <div>
+                                <p className="text-xs text-green-600 font-bold mb-1 flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> الرصيد المتاح</p>
+                                <p className="text-2xl font-black text-green-800">{driver.balance ?? 0} ريال</p>
+                              </div>
+                              <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center"><CreditCard className="w-5 h-5 text-green-700" /></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-[#1F4A10]">إجراءات سريعة</h4>
+                          <p className="text-xs text-gray-500">تواصل مع السائق أو قم بإدارة حالته</p>
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <button onClick={() => setShowNotif(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-50 text-blue-700 font-bold text-sm hover:bg-blue-100 transition-colors">
+                            <Bell className="w-4 h-4" /> إرسال إشعار
+                          </button>
+                          <a href={`tel:${driver.phone}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F6FAF0] text-[#1F4A10] font-bold text-sm hover:bg-[#D4EDA8] transition-colors border border-[#D4EDA8]">
+                            <Phone className="w-4 h-4" /> اتصال
+                          </a>
+                          <button onClick={handleBlock} disabled={blocking} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors">
+                            <Ban className="w-4 h-4" /> {blocking ? "..." : "حظر السائق"}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === "kyc" && (
+                    <motion.div key="kyc" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
+                      
+                      {driver.status === "pending" && (
+                        <div className="border border-amber-200 rounded-2xl p-5 bg-amber-50 space-y-4 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-2 h-full bg-amber-400" />
+                          <div>
+                            <p className="font-bold text-amber-800 text-lg flex items-center gap-2">
+                              <AlertTriangle className="w-5 h-5" /> توثيق الحساب - قيد المراجعة
+                            </p>
+                            <p className="text-sm text-amber-700 mt-1">يرجى مراجعة الوثائق المرفقة والموافقة على توثيق الحساب أو رفضه مع ذكر السبب.</p>
+                          </div>
+                          <div className="bg-white p-4 rounded-xl border border-amber-100">
+                            <label className="block text-xs font-bold text-gray-500 mb-2">سبب الرفض (إلزامي في حالة الرفض)</label>
+                            <input
+                              value={rejReason} onChange={(e) => setRejReason(e.target.value)}
+                              placeholder="اكتب سبب الرفض بوضوح ليتم إرساله للسائق..."
+                              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-amber-400 bg-gray-50/50"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button onClick={handleAccept} disabled={acting}
+                              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 disabled:opacity-50 transition-colors shadow-lg shadow-green-600/20">
+                              <CheckCircle className="w-5 h-5" /> الموافقة وتوثيق الحساب
+                            </button>
+                            <button onClick={handleReject} disabled={acting || !rejReason}
+                              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-100 text-red-700 font-bold text-sm hover:bg-red-200 disabled:opacity-50 transition-colors">
+                              <XCircle className="w-5 h-5" /> رفض الطلب
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h4 className="font-bold text-[#1F4A10] text-lg mb-6 flex items-center gap-2">
+                          <Shield className="w-5 h-5 text-[#679632]" /> الوثائق الرسمية والمرفقات
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                          {[
+                            { label: "صورة الوجه الشخصية", url: driver.face_image, desc: "صورة واضحة لوجه السائق للتحقق السريع" },
+                            { label: "الهوية الوطنية", url: driver.national_id, desc: "صورة واضحة للهوية من الأمام" },
+                            { label: "رخصة القيادة", url: driver.driving_license, desc: "رخصة قيادة سارية المفعول" },
+                            { label: "استمارة المركبة", url: driver.car_license, desc: "رخصة السير (الاستمارة)" },
+                          ].map((doc, idx) => (
+                            <div key={idx} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col h-full">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center"><ImageIcon className="w-4 h-4 text-gray-400" /></div>
+                                <div><p className="font-bold text-sm text-[#1F4A10]">{doc.label}</p></div>
+                              </div>
+                              <p className="text-xs text-gray-500 mb-4">{doc.desc}</p>
+                              
+                              <div className="mt-auto">
+                                {doc.url ? (
+                                  <a href={getImageUrl(doc.url)} target="_blank" rel="noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#F6FAF0] rounded-xl text-[#679632] font-bold text-sm hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
+                                    <Eye className="w-4 h-4" /> عرض الوثيقة كاملة
+                                  </a>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-100 rounded-xl text-gray-400 font-bold text-sm">
+                                    <XCircle className="w-4 h-4" /> غير متوفرة
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === "vehicle" && (
+                    <motion.div key="vehicle" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
+                      {driver.car ? (
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#F6FAF0] to-transparent rounded-bl-full -z-10" />
+                          <h4 className="font-bold text-[#1F4A10] text-lg mb-6 flex items-center gap-2">
+                            <Car className="w-5 h-5 text-[#679632]" /> معلومات المركبة
+                          </h4>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div><p className="text-xs text-gray-400 mb-1">نوع سيارة السطحة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.truck_type ?? "—"}</p></div>
+                            <div><p className="text-xs text-gray-400 mb-1">نوع المركبة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.car_type?.name ?? "—"}</p></div>
+                            <div><p className="text-xs text-gray-400 mb-1">الموديل</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.model ?? "—"}</p></div>
+                            <div><p className="text-xs text-gray-400 mb-1">سنة الصنع</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.year ?? "—"}</p></div>
+                            <div>
+                              <p className="text-xs text-gray-400 mb-1">رقم اللوحة</p>
+                              <div className="inline-block bg-white border-2 border-gray-800 rounded-lg px-3 py-1 shadow-sm mt-1">
+                                <p className="font-black text-gray-800 tracking-widest">{driver.car.plate_number ?? "—"}</p>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-400 mb-1">اللون</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                {driver.car.color && <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: driver.car.color }}></div>}
+                                <p className="font-bold text-lg text-[#1F4A10]">{driver.car.color ?? "—"}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                          <Car className="w-16 h-16 text-gray-200 mb-4" />
+                          <p className="text-gray-500 font-bold">لم يقم السائق بإضافة مركبة حتى الآن</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {activeTab === "trips" && (
+                    <motion.div key="trips" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">
+                      {loadingOrders ? (
+                         <div className="flex justify-center items-center py-16 bg-white rounded-2xl border border-gray-100">
+                           <div className="w-8 h-8 border-4 border-[#D4EDA8] border-t-[#679632] rounded-full animate-spin" />
+                         </div>
+                      ) : orders.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm text-center">
+                          <Navigation className="w-16 h-16 text-gray-200 mb-4" />
+                          <p className="text-gray-500 font-bold">لا يوجد سجل طلبات لهذا السائق</p>
+                          <p className="text-xs text-gray-400 mt-1">الرحلات التي يقوم بها السائق ستظهر هنا بالتفصيل</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {orders.map((order) => (
+                            <div key={order.uuid} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:border-[#D4EDA8] transition-colors">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                    order.status === "completed" ? "bg-green-50 text-green-600" :
+                                    order.status === "cancelled" ? "bg-red-50 text-red-500" :
+                                    "bg-blue-50 text-blue-600"
+                                  }`}>
+                                    <Car className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-[#1F4A10]">الرحلة #{order.uuid.substring(0,6)}</p>
+                                    <p className="text-xs text-gray-500 flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(order.created_at || "").toLocaleDateString("ar-SA")}</p>
+                                  </div>
+                                </div>
+                                <div className="text-left">
+                                  <p className="font-black text-[#1F4A10]">{order.price} ريال</p>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                    order.status === "completed" ? "bg-green-100 text-green-700" :
+                                    order.status === "cancelled" ? "bg-red-100 text-red-700" :
+                                    "bg-blue-100 text-blue-700"
+                                  }`}>
+                                    {order.status === "completed" ? "مكتملة" : order.status === "cancelled" ? "ملغاة" : "نشطة"}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-[#F6FAF0] rounded-xl p-3 flex items-center gap-4 text-sm mt-2">
+                                <div className="flex-1 flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><User className="w-3 h-3 text-gray-400" /></div>
+                                  <div>
+                                    <p className="text-xs text-gray-500">العميل</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs">{order.user?.name ?? "عميل غير معروف"}</p>
+                                  </div>
+                                </div>
+                                <div className="flex-1 flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><CreditCard className="w-3 h-3 text-gray-400" /></div>
+                                  <div>
+                                    <p className="text-xs text-gray-500">الدفع</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs">{order.payment_method === "cash" ? "نقدي" : "بطاقة"}</p>
+                                  </div>
+                                </div>
+                                <div className="flex-1 flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><MapPin className="w-3 h-3 text-gray-400" /></div>
+                                  <div>
+                                    <p className="text-xs text-gray-500">المسافة</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs">{order.distance} كم</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                </AnimatePresence>
+              </div>
+            </div>
+          ) : null}
+        </motion.div>
       </div>
       {showNotif && driver && <NotifModal driver={driver} onClose={() => setShowNotif(false)} />}
     </>
@@ -345,185 +548,220 @@ export default function DriversManagement() {
   };
 
   return (
-    <div className="space-y-5" dir="rtl">
+    <div className="space-y-6" dir="rtl">
       {/* Toast */}
-      {toast.msg && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-xl text-sm font-bold ${toast.ok ? "bg-[#1F4A10] text-white" : "bg-red-600 text-white"}`}>
-          {toast.msg}
-        </div>
-      )}
+      <AnimatePresence>
+        {toast.msg && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl shadow-xl text-sm font-bold flex items-center gap-2 ${toast.ok ? "bg-[#1F4A10] text-white" : "bg-red-600 text-white"}`}>
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-heading font-black text-[#1F4A10]">إدارة السائقين</h2>
-          <p className="text-sm text-gray-500 mt-0.5">قائمة جميع السائقين المسجلين على Android و iOS</p>
+          <h2 className="text-3xl font-heading font-black text-[#1F4A10]">إدارة السائقين</h2>
+          <p className="text-sm text-gray-500 mt-1">التحكم الكامل بالسائقين وتوثيق الحسابات ومتابعة الرحلات</p>
         </div>
         <div className="flex gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F6FAF0] border border-[#D4EDA8]">
-            <Smartphone className="w-3.5 h-3.5 text-green-600" />
-            <Apple className="w-3.5 h-3.5 text-gray-600" />
-            <span className="text-xs font-bold text-[#679632]">متزامن</span>
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-100 shadow-sm">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            <span className="text-xs font-bold text-gray-600">تحديث مباشر</span>
           </div>
-          <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1F4A10] text-white text-sm font-bold hover:bg-[#2A5A14] transition-colors">
-            <RefreshCw className="w-4 h-4" /> تحديث
+          <button onClick={load} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-[#1F4A10] text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm">
+            <RefreshCw className="w-4 h-4" /> تحديث البيانات
           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      {/* Premium Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { label: "الكل",           val: counts.all,      icon: Car,         color: "#1F4A10", bg: "#D4EDA8",  filter: "all"      },
-          { label: "موثّقون",        val: counts.accepted, icon: UserCheck,   color: "#16a34a", bg: "#dcfce7",  filter: "accepted" },
-          { label: "قيد المراجعة",   val: counts.pending,  icon: Clock,       color: "#d97706", bg: "#fef3c7",  filter: "pending"  },
-          { label: "مرفوضون",        val: counts.rejected, icon: XCircle,     color: "#dc2626", bg: "#fee2e2",  filter: "rejected" },
-          { label: "متصلون الآن",    val: counts.online,   icon: CheckCircle, color: "#0891b2", bg: "#cffafe",  filter: "_online"  },
+          { label: "إجمالي السائقين",   val: counts.all,      icon: Car,         color: "#1F4A10", bg: "bg-[#F6FAF0]", border: "border-[#D4EDA8]", filter: "all"      },
+          { label: "السائقين الموثقين", val: counts.accepted, icon: Shield,      color: "#16a34a", bg: "bg-green-50", border: "border-green-200", filter: "accepted" },
+          { label: "بانتظار التوثيق",   val: counts.pending,  icon: AlertTriangle,color: "#d97706", bg: "bg-amber-50", border: "border-amber-200", filter: "pending"  },
+          { label: "طلبات مرفوضة",      val: counts.rejected, icon: Ban,         color: "#dc2626", bg: "bg-red-50", border: "border-red-200", filter: "rejected" },
+          { label: "متصلون الآن",       val: counts.online,   icon: Activity,    color: "#0891b2", bg: "bg-cyan-50", border: "border-cyan-200", filter: "_online"  },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+          <div key={s.label} className={`rounded-2xl p-5 border ${s.border} ${s.bg} cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md ${statusFilter === s.filter ? 'ring-2 ring-offset-2 ring-[#679632]' : ''}`}
             onClick={() => setStatusFilter(statusFilter === s.filter ? "all" : s.filter)}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: s.bg }}>
-                <s.icon className="w-4 h-4" style={{ color: s.color }} />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <s.icon className="w-5 h-5" style={{ color: s.color }} />
               </div>
-              <span className="text-xs text-gray-500">{s.label}</span>
+              {s.filter === "pending" && counts.pending > 0 && (
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                </span>
+              )}
             </div>
-            <p className="text-2xl font-heading font-black" style={{ color: s.color }}>{s.val}</p>
+            <p className="text-3xl font-heading font-black" style={{ color: s.color }}>{s.val}</p>
+            <span className="text-xs font-bold text-gray-600 mt-1 block">{s.label}</span>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
+      {/* Filters & Search */}
+      <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]"
-            placeholder="البحث بالاسم أو الهاتف..."
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input className="w-full pr-12 pl-4 py-3 rounded-xl bg-gray-50 border-none text-sm outline-none focus:ring-2 focus:ring-[#D4EDA8] transition-all"
+            placeholder="ابحث عن سائق بالاسم، رقم الهاتف، أو الإيميل..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="relative">
-          <select className="appearance-none pr-4 pl-9 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] bg-white"
+        <div className="relative min-w-[200px]">
+          <select className="w-full appearance-none pr-4 pl-10 py-3 rounded-xl bg-gray-50 border-none text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-[#D4EDA8] transition-all"
             value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="all">كل الحالات</option>
-            <option value="accepted">موثّق</option>
-            <option value="pending">قيد المراجعة</option>
-            <option value="rejected">مرفوض</option>
+            <option value="all">عرض الجميع</option>
+            <option value="accepted">السائقين الموثقين فقط</option>
+            <option value="pending">طلبات التوثيق المعلقة</option>
+            <option value="rejected">الطلبات المرفوضة</option>
           </select>
-          <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
-      {/* Table */}
+      {/* Advanced Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="w-8 h-8 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" />
+          <div className="flex justify-center items-center py-24">
+            <div className="w-10 h-10 border-4 border-[#D4EDA8] border-t-[#679632] rounded-full animate-spin" />
           </div>
         ) : error ? (
-          <div className="text-center py-16">
-            <XCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
-            <p className="text-red-500 font-bold">{error}</p>
-            <button onClick={load} className="mt-3 text-sm text-[#679632] underline">إعادة المحاولة</button>
+          <div className="text-center py-20">
+            <XCircle className="w-12 h-12 text-red-300 mx-auto mb-4" />
+            <p className="text-red-500 font-bold text-lg mb-2">{error}</p>
+            <button onClick={load} className="px-6 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors">إعادة المحاولة</button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <Car className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p>لا توجد نتائج</p>
+          <div className="text-center py-24">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-gray-300" />
+            </div>
+            <p className="text-gray-500 font-bold text-lg mb-1">لا توجد نتائج مطابقة لبحثك</p>
+            <p className="text-gray-400 text-sm">جرب تغيير كلمات البحث أو الفلاتر المستخدمة</p>
           </div>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-[#F6FAF0]">
-                  <tr>
-                    {["السائق", "الهاتف", "المدينة", "السيارة", "الرحلات", "التقييم", "الرصيد", "الحالة", "إجراءات"].map((h) => (
-                      <th key={h} className="text-right py-3.5 px-4 text-xs font-bold text-[#1F4A10]/60 whitespace-nowrap">{h}</th>
-                    ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="text-right py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">السائق</th>
+                  <th className="text-right py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">معلومات الاتصال</th>
+                  <th className="text-right py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">المركبة والمنطقة</th>
+                  <th className="text-center py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">الإحصائيات</th>
+                  <th className="text-center py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">الحالة</th>
+                  <th className="text-left py-4 px-5 text-xs font-bold text-gray-500 whitespace-nowrap">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((d) => (
+                  <tr key={d.uuid} className="hover:bg-[#F6FAF0]/40 transition-colors group">
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Avatar name={d.name} avatar={d.avatar} size={11} />
+                          {d.is_active && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#1F4A10] group-hover:text-[#679632] transition-colors">{d.name}</p>
+                          <p className="text-[11px] text-gray-400 font-mono mt-0.5">{d.uuid.substring(0,8)}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5">
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5" dir="ltr">
+                          <Phone className="w-3 h-3 text-gray-400" /> {d.phone}
+                        </p>
+                        {d.email && <p className="text-xs text-gray-500 truncate max-w-[150px]">{d.email}</p>}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5">
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5 text-[#679632]" /> {d.car?.car_type?.name ?? "لم يضف مركبة"}
+                        </p>
+                        {d.city?.name && (
+                          <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" /> {d.city.name}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="text-center" title="عدد الطلبات">
+                          <p className="font-black text-[#1F4A10]">{d.trips_count ?? 0}</p>
+                          <p className="text-[10px] text-gray-400">طلب</p>
+                        </div>
+                        <div className="h-6 w-px bg-gray-200"></div>
+                        <div className="text-center" title="التقييم">
+                          <p className="font-black text-amber-500 flex items-center justify-center gap-0.5">
+                            {d.rating ?? "—"} <Star className="w-3 h-3 fill-amber-500" />
+                          </p>
+                          <p className="text-[10px] text-gray-400">التقييم</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-center">
+                      <div className="flex flex-col items-center gap-1.5">
+                        <Badge status={d.status} />
+                        {d.status === "pending" && <span className="text-[10px] text-amber-600 font-bold animate-pulse">مطلوب إجراء</span>}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-left">
+                      <div className="flex items-center justify-end gap-2">
+                        {d.status === "pending" && (
+                          <button onClick={async () => { await handleAction(d.uuid, "accepted"); }}
+                            className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 hover:scale-110 transition-all" title="قبول السائق">
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button onClick={() => setNotifDriver(d)}
+                          className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 hover:scale-110 transition-all" title="إرسال إشعار">
+                          <Bell className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setSelectedUuid(d.uuid)}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-700 font-bold hover:bg-[#1F4A10] hover:text-white transition-colors border border-gray-200 hover:border-[#1F4A10]">
+                          <span className="text-xs">التفاصيل</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {filtered.map((d) => (
-                    <tr key={d.uuid} className="hover:bg-[#F6FAF0]/60 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar name={d.name} avatar={d.avatar} />
-                          <div>
-                            <p className="font-bold text-[#1F4A10]">{d.name}</p>
-                            {d.email && <p className="text-xs text-gray-400 truncate max-w-[140px]">{d.email}</p>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-600 text-xs">{d.phone}</td>
-                      <td className="py-3.5 px-4 text-gray-600">
-                        {d.city?.name ? (
-                          <span className="flex items-center gap-1 text-xs"><MapPin className="w-3 h-3" />{d.city.name}</span>
-                        ) : "—"}
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-600 text-xs">{d.car?.car_type?.name ?? "—"}</td>
-                      <td className="py-3.5 px-4 text-center font-bold text-[#1F4A10] text-xs">{d.trips_count ?? "—"}</td>
-                      <td className="py-3.5 px-4">
-                        {d.rating ? (
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                            <span className="font-bold text-xs">{d.rating}</span>
-                          </span>
-                        ) : "—"}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {d.balance != null ? (
-                          <span className={`font-bold text-xs ${d.balance > 0 ? "text-green-600" : "text-gray-400"}`}>
-                            {d.balance} ريال
-                          </span>
-                        ) : "—"}
-                      </td>
-                      <td className="py-3.5 px-4"><Badge status={d.status} /></td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => setSelectedUuid(d.uuid)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F6FAF0] text-[#1F4A10] hover:bg-[#D4EDA8] transition-colors text-xs font-bold">
-                            <Eye className="w-3.5 h-3.5" /> عرض
-                          </button>
-                          {d.status === "pending" && (
-                            <>
-                              <button onClick={async () => { await handleAction(d.uuid, "accepted"); }}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-xs font-bold">
-                                <CheckCircle className="w-3.5 h-3.5" /> قبول
-                              </button>
-                              <button onClick={async () => { await handleAction(d.uuid, "rejected"); }}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-xs font-bold">
-                                <XCircle className="w-3.5 h-3.5" /> رفض
-                              </button>
-                            </>
-                          )}
-                          <button onClick={() => setNotifDriver(d)}
-                            className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                            <Bell className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!loading && !error && filtered.length > 0 && (
+          <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <p className="text-xs text-gray-500 font-bold">إجمالي السائقين المعروضين: <span className="text-[#1F4A10]">{filtered.length}</span></p>
+            <div className="flex gap-1">
+              <button disabled className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 bg-white opacity-50"><ChevronRight className="w-4 h-4" /></button>
+              <button disabled className="w-8 h-8 rounded-lg border border-[#D4EDA8] flex items-center justify-center text-[#1F4A10] bg-[#F6FAF0] font-bold text-xs">1</button>
+              <button disabled className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 bg-white opacity-50"><ChevronRight className="w-4 h-4 rotate-180" /></button>
             </div>
-            <div className="px-4 py-3 border-t border-gray-50 text-xs text-gray-400 text-center">
-              عرض {filtered.length} من {drivers.length} سائق
-              {counts.pending > 0 && (
-                <span className="mr-3 text-amber-600 font-bold animate-pulse">• {counts.pending} بانتظار التوثيق</span>
-              )}
-            </div>
-          </>
+          </div>
         )}
       </div>
 
-      {selectedUuid && (
-        <DriverModal
-          uuid={selectedUuid}
-          onClose={() => setSelectedUuid(null)}
-          onAction={handleAction}
-          onBlock={handleBlock}
-        />
-      )}
-      {notifDriver && <NotifModal driver={notifDriver} onClose={() => setNotifDriver(null)} />}
+      <AnimatePresence>
+        {selectedUuid && (
+          <DriverModal
+            uuid={selectedUuid}
+            onClose={() => setSelectedUuid(null)}
+            onAction={handleAction}
+            onBlock={handleBlock}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

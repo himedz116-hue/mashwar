@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { getAdminProfile, editAdminProfileWithAvatar, changeAdminPassword, type AdminProfile } from "@/lib/meshwarApi";
+import { getAdminProfile, editAdminProfileWithAvatar, changeAdminPassword, getImageUrl, type AdminProfile } from "@/lib/meshwarApi";
 import { User, Lock, RefreshCw, Check, Camera, Upload, Eye, EyeOff, Shield, Mail, Phone as PhoneIcon } from "lucide-react";
 
 export default function AdminProfile() {
@@ -121,7 +121,7 @@ export default function AdminProfile() {
               <div className="relative group">
                 <div className="w-24 h-24 rounded-3xl shadow-lg overflow-hidden">
                   {displayAvatar ? (
-                    <img src={displayAvatar} className="w-24 h-24 object-cover" />
+                    <img src={getImageUrl(displayAvatar)} className="w-24 h-24 object-cover" />
                   ) : (
                     <div className="w-24 h-24 bg-gradient-to-br from-[#D4EDA8] to-[#a8d060] flex items-center justify-center">
                       <span className="font-black text-[#1F4A10] text-4xl">{initials}</span>

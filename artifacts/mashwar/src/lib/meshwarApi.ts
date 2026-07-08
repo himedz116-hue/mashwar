@@ -1,7 +1,13 @@
 // Central API client for Meshwar backend
 // Use HTTPS by default; override with VITE_MESHWAR_API_URL if needed
-const API_BASE = (import.meta.env.VITE_MESHWAR_API_URL as string | undefined)
+export const API_BASE = (import.meta.env.VITE_MESHWAR_API_URL as string | undefined)
   ?? "https://meshwarsv2.meshwars.net";
+
+export const getImageUrl = (path?: string) => {
+  if (!path) return "";
+  if (path.startsWith("http") || path.startsWith("blob:")) return path;
+  return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+};
 
 export const getAdminToken = () => localStorage.getItem("meshwar_admin_token") ?? "";
 export const setAdminToken = (t: string) => localStorage.setItem("meshwar_admin_token", t);
@@ -103,18 +109,54 @@ export const deleteCity = (uuid: string) =>
   request(`/api/admin/cities/destroy?uuid=${uuid}`, { method: "DELETE" });
 
 // ── Users ─────────────────────────────────────────────────
-export const getUsers = (params = "") =>
-  request<{ data: User[] }>(`/api/admin/users${params ? `?${params}` : ""}`);
+export const getUsers = async (params = "") => {
+  const res = await request<{ data: User[] }>(`/api/admin/users${params ? `?${params}` : ""}`);
+  res.data = (res.data || []).map(u => ({
+    ...u,
+    avatar: u.image || u.avatar,
+    phone: u.mobile_without_prefix || u.mobile || u.phone
+  }));
+  return res;
+};
 export const blockUser = (data: { uuid: string; status: "active" | "blocked" }) =>
   request("/api/admin/users/block", { method: "POST", body: JSON.stringify(data) });
 export const deleteUser = (uuid: string) =>
   request(`/api/admin/users/destroy?uuid=${uuid}`, { method: "DELETE" });
 
 // ── Drivers ───────────────────────────────────────────────
-export const getDrivers = (params = "") =>
-  request<{ data: Driver[] }>(`/api/admin/drivers${params ? `?${params}` : ""}`);
-export const showDriver = (uuid: string) =>
-  request<{ data: Driver }>(`/api/admin/drivers/show?uuid=${uuid}`);
+export const getDrivers = async (params = "") => {
+  const res = await request<{ data: Driver[] }>(`/api/admin/drivers${params ? `?${params}` : ""}`);
+  res.data = (res.data || []).map(d => ({
+    ...d,
+    avatar: d.image || d.avatar,
+    phone: d.mobile_without_prefix || d.mobile || d.phone,
+    dob: d.date_of_birth || d.dob,
+    national_id: d.identity_image1 || d.national_id,
+    driving_license: d.license_image1 || d.driving_license,
+    car_license: d.license_image2 || d.car_license,
+    face_image: d.image || d.face_image,
+    truck_type: d.car_name || d.truck_type
+  }));
+  return res;
+};
+export const showDriver = async (uuid: string) => {
+  const res = await request<{ data: Driver }>(`/api/admin/drivers/show?uuid=${uuid}`);
+  if (res.data) {
+    const d = res.data;
+    res.data = {
+      ...d,
+      avatar: d.image || d.avatar,
+      phone: d.mobile_without_prefix || d.mobile || d.phone,
+      dob: d.date_of_birth || d.dob,
+      national_id: d.identity_image1 || d.national_id,
+      driving_license: d.license_image1 || d.driving_license,
+      car_license: d.license_image2 || d.car_license,
+      face_image: d.image || d.face_image,
+      truck_type: d.car_name || d.truck_type
+    };
+  }
+  return res;
+};
 export const acceptDriver = (data: { uuid: string; status: "accepted" | "rejected"; reason?: string }) =>
   request("/api/admin/drivers/accept", { method: "POST", body: JSON.stringify(data) });
 export const sendDriverNotification = (data: { title: string; body: string; uuid?: string }) =>
@@ -174,20 +216,27 @@ export const deleteIntroduction = (uuid: string) =>
   request(`/api/admin/introductions/destroy?uuid=${uuid}`, { method: "DELETE" });
 
 // ── Cars ──────────────────────────────────────────────────
-export const getCars = () => request<{ data: Car[] }>("/api/admin/cars");
+export const getCars = async () => {
+  return request<{ data: Car[] }>("/api/admin/cars");
+};
 export const showCar = (uuid: string) =>
   request<{ data: Car }>(`/api/admin/cars/show?uuid=${uuid}`);
-export const addCar = (data: Partial<Car>) =>
-  request("/api/admin/cars/store", { method: "POST", body: JSON.stringify(data) });
-export const editCar = (data: Partial<Car>) =>
-  request("/api/admin/cars/edit", { method: "POST", body: JSON.stringify(data) });
+export const addCar = (data: FormData) =>
+  multipartRequest("/api/admin/cars/store", data);
+export const editCar = (data: FormData) =>
+  multipartRequest("/api/admin/cars/edit", data); // Assuming edit endpoint takes multipart
 export const deleteCar = (uuid: string) =>
   request("/api/admin/cars/destroy", { method: "DELETE", body: JSON.stringify({ uuid }) });
 
 // ── Orders ────────────────────────────────────────────────
-// type: 1=pending, 2=active, 3=completed, 4=cancelled
-export const getOrders = (type?: number) =>
-  request<{ data: Order[] }>(`/api/admin/orders${type != null ? `?type=${type}` : ""}`);
+export const getOrders = (params?: { type?: number; driver_uuid?: string; user_uuid?: string }) => {
+  const query = new URLSearchParams();
+  if (params?.type) query.append("type", params.type.toString());
+  if (params?.driver_uuid) query.append("driver_uuid", params.driver_uuid);
+  if (params?.user_uuid) query.append("user_uuid", params.user_uuid);
+  const q = query.toString();
+  return request<{ data: Order[] }>(`/api/admin/orders${q ? `?${q}` : ""}`);
+};
 export const showOrder = (uuid: string) =>
   request<{ data: Order }>(`/api/admin/orders/show?uuid=${uuid}`);
 export const driverPayment = (data: { uuid: string; amount: number }) =>
@@ -198,12 +247,39 @@ export const getBalance = () =>
   request<{ data: BalanceData }>("/api/admin/balance");
 
 // ── Messages ──────────────────────────────────────────────
-export const getMessageUsers = (type: "user" | "driver" = "user", name = "") =>
-  request<{ data: MsgUser[] }>(`/api/admin/messages/users?type=${type}${name ? `&name=${name}` : ""}`);
-export const getMessages = (user_uuid: string) =>
-  request<{ data: Message[] }>(`/api/admin/messages?user_uuid=${user_uuid}`);
-export const sendMessage = (data: { user_uuid: string; message: string }) =>
-  request("/api/admin/messages/send", { method: "POST", body: JSON.stringify(data) });
+export const getMessageUsers = async (type: "user" | "driver" = "user", name = "") => {
+  const res = await request<{ data: MsgUser[] }>(`/api/admin/messages/users?type=${type}${name ? `&name=${name}` : ""}`);
+  res.data = (res.data || []).map(u => ({
+    ...u,
+    avatar: u.image || u.avatar,
+    phone: u.mobile_without_prefix || u.mobile || (u as any).phone
+  }));
+  return res;
+};
+export const getMessages = async (user_uuid: string) => {
+  const res = await request<{ data: any[] }>(`/api/admin/messages?user_uuid=${user_uuid}`);
+  res.data = (res.data || []).map((m: any, i: number) => {
+    if (m.content_type === 'date') {
+      return {
+        uuid: `date-${m.created_at}-${i}`,
+        message: m.created_at,
+        is_admin: false,
+        created_at: m.created_at,
+        content_type: 'date'
+      };
+    }
+    return {
+      uuid: m.uuid,
+      message: m.content,
+      is_admin: m.from_me,
+      created_at: m.created_time || m.created_at,
+      content_type: m.content_type
+    };
+  });
+  return res as unknown as { data: import('./meshwarApi').Message[] };
+};
+export const sendMessage = (data: { user_uuid: string; message: string; type?: string }) =>
+  request("/api/admin/messages/send", { method: "POST", body: JSON.stringify({ user_uuid: data.user_uuid, body: data.message, msg_type: data.type || "text" }) });
 
 // ── Types ─────────────────────────────────────────────────
 export interface AdminProfile {
@@ -212,6 +288,7 @@ export interface AdminProfile {
   email: string;
   phone: string;
   avatar?: string;
+  image?: string;
 }
 export interface City {
   uuid: string;
@@ -223,9 +300,12 @@ export interface User {
   uuid: string;
   name: string;
   phone: string;
+  mobile?: string;
+  mobile_without_prefix?: string;
   email?: string;
   status?: string;
   avatar?: string;
+  image?: string;
   trips_count?: number;
   rating?: number;
   created_at?: string;
@@ -234,20 +314,36 @@ export interface Driver {
   uuid: string;
   name: string;
   phone: string;
+  mobile?: string;
+  mobile_without_prefix?: string;
   email?: string;
   status?: string;
   is_verified?: boolean;
+  is_accepted?: boolean;
   is_active?: boolean;
   rating?: number;
   trips_count?: number;
   balance?: number;
   avatar?: string;
+  image?: string;
   created_at?: string;
   city?: City;
   car?: Car;
   national_id?: string;
   driving_license?: string;
   car_license?: string;
+  identity_image1?: string;
+  identity_image2?: string;
+  license_image1?: string;
+  license_image2?: string;
+  face_image?: string;
+  dob?: string;
+  date_of_birth?: string;
+  age?: number;
+  device?: string;
+  os_version?: string;
+  truck_type?: string;
+  car_name?: string;
 }
 export interface CarType {
   uuid: string;
@@ -271,6 +367,22 @@ export interface Introduction {
   type?: number;
   sort?: number;
 }
+export interface CarPriceRule {
+  id?: number;
+  uuid?: string;
+  car_uuid?: string;
+  car_type_uuid: string;
+  place_type: "inside" | "outside";
+  distance_scale: "bigger" | "less_or_equal" | string;
+  max_distance: string | number;
+  name?: string;
+  price: string | number;
+  commission: string | number;
+}
+export interface CarPrices {
+  inside: { car_type_uuid: string; prices: CarPriceRule[] }[];
+  outside: { car_type_uuid: string; prices: CarPriceRule[] }[];
+}
 export interface Car {
   uuid: string;
   name: string;
@@ -281,6 +393,9 @@ export interface Car {
   driver?: Driver;
   car_type?: CarType;
   created_at?: string;
+  image?: string;
+  is_active?: boolean;
+  carPrices?: CarPrices;
 }
 export interface Order {
   uuid: string;
@@ -290,8 +405,8 @@ export interface Order {
   distance?: number;
   from_address?: string;
   to_address?: string;
-  user?: { name: string; phone: string };
-  driver?: { name: string; phone: string };
+  user?: User;
+  driver?: Driver;
   car_type?: CarType;
   created_at?: string;
   payment_method?: string;
@@ -309,6 +424,7 @@ export interface MsgUser {
   name: string;
   phone: string;
   avatar?: string;
+  image?: string;
   last_message?: string;
   unread_count?: number;
 }
@@ -317,4 +433,5 @@ export interface Message {
   message: string;
   is_admin: boolean;
   created_at: string;
+  content_type?: string;
 }

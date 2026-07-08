@@ -1,350 +1,381 @@
 import { useState, useEffect } from "react";
-import { getCars, addCar, editCar, deleteCar, getCarTypes, type Car, type CarType } from "@/lib/meshwarApi";
+import { getCars, showCar, addCar, editCar, deleteCar, getCarTypes, getImageUrl, type Car, type CarType, type CarPriceRule, type CarPrices } from "@/lib/meshwarApi";
 import {
-  Car as CarIcon, RefreshCw, Plus, Pencil, Trash2, XCircle,
-  Check, Search, X, Smartphone, Apple, User, Shield,
+  Car as CarIcon, RefreshCw, Plus, Pencil, Trash2, X, Info, Gauge,
+  CheckCircle2, AlertCircle, Image as ImageIcon, Check, ChevronDown, Trash, Search
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-function Modal({ initial, carTypes, onSave, onClose }: {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  show: { opacity: 1, scale: 1 }
+};
+
+const defaultPrices: CarPrices = { inside: [], outside: [] };
+
+function EditModal({ initial, carTypes, onSave, onDelete, onClose }: {
   initial: Partial<Car>; carTypes: CarType[];
-  onSave: (d: Partial<Car>) => Promise<void>; onClose: () => void;
+  onSave: (data: FormData) => Promise<void>; 
+  onDelete?: (uuid: string) => Promise<void>;
+  onClose: () => void;
 }) {
-  const [form, setForm] = useState<Partial<Car>>(initial);
+  const [form, setForm] = useState<{name: string; is_active: boolean; imageFile?: File; imagePreview?: string}>(() => ({
+    name: initial.name || "",
+    is_active: initial.is_active ?? true,
+    imagePreview: initial.image ? getImageUrl(initial.image) : undefined
+  }));
+  const [prices, setPrices] = useState<CarPrices>(initial.carPrices || defaultPrices);
+  const [activeTab, setActiveTab] = useState<"inside" | "outside">("inside");
+  const [selectedTypeUuid, setSelectedTypeUuid] = useState<string>(carTypes[0]?.uuid || "");
+  
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [err, setErr] = useState("");
   const isEdit = !!initial.uuid;
-  const set = (k: keyof Car, v: unknown) => setForm((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    if (carTypes.length > 0 && !selectedTypeUuid) {
+      setSelectedTypeUuid(carTypes[0].uuid);
+    }
+  }, [carTypes, selectedTypeUuid]);
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setForm(p => ({ ...p, imageFile: file, imagePreview: URL.createObjectURL(file) }));
+    }
+  };
+
+  const getActiveTypePrices = () => {
+    const tabData = prices[activeTab] || [];
+    const typeData = tabData.find(t => t.car_type_uuid === selectedTypeUuid);
+    return typeData?.prices || [];
+  };
+
+  const updatePriceRule = (index: number, key: keyof CarPriceRule, value: any) => {
+    setPrices(prev => {
+      const next = { ...prev };
+      if (!next[activeTab]) next[activeTab] = [];
+      let typeIndex = next[activeTab].findIndex(t => t.car_type_uuid === selectedTypeUuid);
+      if (typeIndex === -1) {
+        next[activeTab].push({ car_type_uuid: selectedTypeUuid, prices: [] });
+        typeIndex = next[activeTab].length - 1;
+      }
+      const newPrices = [...next[activeTab][typeIndex].prices];
+      newPrices[index] = { ...newPrices[index], [key]: value };
+      next[activeTab][typeIndex].prices = newPrices;
+      return next;
+    });
+  };
+
+  const addPriceRule = () => {
+    setPrices(prev => {
+      const next = { ...prev };
+      if (!next[activeTab]) next[activeTab] = [];
+      let typeIndex = next[activeTab].findIndex(t => t.car_type_uuid === selectedTypeUuid);
+      if (typeIndex === -1) {
+        next[activeTab].push({ car_type_uuid: selectedTypeUuid, prices: [] });
+        typeIndex = next[activeTab].length - 1;
+      }
+      next[activeTab][typeIndex].prices.push({
+        car_type_uuid: selectedTypeUuid,
+        place_type: activeTab,
+        distance_scale: "bigger",
+        max_distance: "20",
+        price: "",
+        commission: "",
+        name: ""
+      });
+      return next;
+    });
+  };
+
+  const removePriceRule = (index: number) => {
+    setPrices(prev => {
+      const next = { ...prev };
+      const typeIndex = next[activeTab].findIndex(t => t.car_type_uuid === selectedTypeUuid);
+      if (typeIndex > -1) {
+        const newPrices = [...next[activeTab][typeIndex].prices];
+        newPrices.splice(index, 1);
+        next[activeTab][typeIndex].prices = newPrices;
+      }
+      return next;
+    });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name) { setErr("اسم السيارة مطلوب"); return; }
+    if (!isEdit && !form.imageFile) { setErr("صورة السيارة مطلوبة"); return; }
+    
     setSaving(true); setErr("");
-    try { await onSave(form); onClose(); }
+    try {
+      const formData = new FormData();
+      if (isEdit && initial.uuid) formData.append("uuid", initial.uuid);
+      formData.append("name", form.name);
+      formData.append("is_active", form.is_active ? "1" : "0");
+      if (form.imageFile) formData.append("image", form.imageFile);
+      
+      // Append carPrices as JSON string
+      formData.append("carPrices", JSON.stringify(prices));
+
+      await onSave(formData);
+      onClose();
+    }
     catch (e: unknown) { setErr(e instanceof Error ? e.message : String(e)); }
     finally { setSaving(false); }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <form className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#D4EDA8] flex items-center justify-center">
-              <CarIcon className="w-5 h-5 text-[#1F4A10]" />
-            </div>
-            <h3 className="font-heading font-black text-[#1F4A10] text-lg">{isEdit ? "تعديل السيارة" : "إضافة سيارة"}</h3>
-          </div>
-          <button type="button" onClick={onClose}><XCircle className="w-5 h-5 text-gray-400" /></button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: "اسم السيارة *", key: "name" as const, type: "text", col: 2 },
-            { label: "رقم اللوحة", key: "plate_number" as const, type: "text", col: 1 },
-            { label: "الموديل", key: "model" as const, type: "text", col: 1 },
-            { label: "السنة", key: "year" as const, type: "number", col: 1 },
-            { label: "اللون", key: "color" as const, type: "text", col: 1 },
-          ].map((f) => (
-            <div key={f.key} className={f.col === 2 ? "col-span-2" : ""}>
-              <label className="block text-xs font-bold text-gray-500 mb-1">{f.label}</label>
-              <input
-                type={f.type} value={String(form[f.key] ?? "")}
-                onChange={(e) => set(f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]"
-              />
-            </div>
-          ))}
-          <div className="col-span-2">
-            <label className="block text-xs font-bold text-gray-500 mb-1">نوع السيارة</label>
-            <select
-              value={(form.car_type as CarType)?.uuid ?? ""}
-              onChange={(e) => set("car_type", carTypes.find((c) => c.uuid === e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] bg-white"
-            >
-              <option value="">اختر النوع</option>
-              {carTypes.map((c) => <option key={c.uuid} value={c.uuid}>{c.name}</option>)}
-            </select>
-          </div>
-        </div>
-        {err && <p className="text-red-500 text-xs">{err}</p>}
-        <button type="submit" disabled={saving}
-          className="w-full py-3 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-          <Check className="w-4 h-4" /> {saving ? "جاري الحفظ..." : "حفظ"}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function CarCard({ car, onEdit, onDelete }: { car: Car; onEdit: () => void; onDelete: () => void }) {
-  const colors: Record<string, string> = {
-    أحمر: "#ef4444", أبيض: "#f3f4f6", أسود: "#1f2937", فضي: "#94a3b8",
-    رمادي: "#6b7280", أزرق: "#3b82f6", أخضر: "#22c55e", ذهبي: "#f59e0b",
+  const handleDelete = async () => {
+    if (!isEdit || !initial.uuid || !onDelete) return;
+    if (!confirm("هل أنت متأكد من حذف هذه السيارة بشكل نهائي؟")) return;
+    setDeleting(true); setErr("");
+    try { await onDelete(initial.uuid); onClose(); }
+    catch (e: unknown) { setErr(e instanceof Error ? e.message : String(e)); setDeleting(false); }
   };
-  const colorHex = car.color ? colors[car.color] ?? "#6b7280" : "#6b7280";
+
+  const activePrices = getActiveTypePrices();
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all group relative overflow-hidden">
-      {/* Color stripe */}
-      <div className="absolute top-0 right-0 left-0 h-1 rounded-t-2xl" style={{ background: colorHex }} />
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={onClose}>
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100" 
+        onClick={(e) => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center gap-4">
+            <h3 className="font-heading font-black text-[#1F4A10] text-2xl">تفاصيل السيارة</h3>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 bg-white hover:bg-red-50 hover:text-red-500 rounded-full shadow-sm transition-colors"><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
 
-      <div className="pt-1 space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[#D4EDA8] flex items-center justify-center">
-              <CarIcon className="w-6 h-6 text-[#1F4A10]" />
+        <div className="overflow-y-auto custom-scroll p-6 space-y-8 flex-1">
+          {err && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 font-bold border border-red-100">
+              <AlertCircle className="w-5 h-5" /> {err}
             </div>
-            <div>
-              <p className="font-heading font-black text-[#1F4A10]">{car.name}</p>
-              {car.plate_number && (
-                <p className="text-xs font-mono bg-[#F6FAF0] px-2 py-0.5 rounded-lg text-[#679632] font-bold mt-0.5">
-                  {car.plate_number}
-                </p>
+          )}
+
+          {/* Image & Name Section */}
+          <div className="flex flex-col items-center gap-4">
+            <label className="relative cursor-pointer group">
+              <div className="w-32 h-32 rounded-3xl bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-[#679632] group-hover:bg-[#F6FAF0]">
+                {form.imagePreview ? (
+                  <img src={form.imagePreview} className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-10 h-10 text-gray-300 group-hover:text-[#679632]" />
+                )}
+              </div>
+              <div className="mt-3 text-center text-sm font-bold text-gray-600 group-hover:text-[#679632]">ادخل صورة السيارة</div>
+              <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
+            </label>
+            
+            <div className="w-full max-w-sm mt-4">
+              <label className="block text-sm font-bold text-gray-700 mb-2">اسم السيارة</label>
+              <input type="text" value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="سطحة"
+                className="w-full px-4 py-3 rounded-xl border border-[#679632] text-sm font-bold text-gray-800 outline-none focus:ring-4 focus:ring-[#D4EDA8]/30 transition-all bg-white text-center" />
+            </div>
+          </div>
+
+          {/* Pricing Tabs */}
+          <div className="flex items-center justify-center border-b border-gray-200">
+            <button onClick={() => setActiveTab("outside")} className={`px-6 py-3 font-bold text-sm transition-all border-b-2 ${activeTab === "outside" ? "border-gray-400 text-gray-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
+              خارج المدينة
+            </button>
+            <button onClick={() => setActiveTab("inside")} className={`px-6 py-3 font-bold text-sm transition-all border-b-2 ${activeTab === "inside" ? "border-black text-black" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
+              داخل المدينة
+            </button>
+          </div>
+
+          {/* Car Type Selector */}
+          <div className="space-y-4">
+            <label className="block text-sm font-bold text-gray-700">اختار النوع</label>
+            <div className="relative">
+              <select value={selectedTypeUuid} onChange={(e) => setSelectedTypeUuid(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl border border-[#679632] text-sm font-bold text-gray-800 outline-none focus:ring-4 focus:ring-[#D4EDA8]/30 transition-all bg-white appearance-none">
+                {carTypes.map(c => <option key={c.uuid} value={c.uuid}>{c.name}</option>)}
+              </select>
+              <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#679632] pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Pricing Rules for Selected Type */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <button type="button" onClick={addPriceRule} className="flex items-center gap-1.5 text-sm font-bold text-[#1F4A10] hover:text-[#679632] transition-colors">
+                <Plus className="w-5 h-5 bg-[#679632] text-white rounded-full p-0.5" /> اكتب السعر
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <AnimatePresence>
+                {activePrices.map((rule, idx) => (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} key={idx} 
+                    className="border border-[#679632] rounded-xl overflow-hidden bg-white">
+                    {/* Row 1: Prices & Description */}
+                    <div className="grid grid-cols-3 divide-x divide-x-reverse divide-[#679632] border-b border-[#679632]">
+                      <div className="p-2 flex items-center justify-center">
+                        <input type="text" value={rule.commission} onChange={e => updatePriceRule(idx, "commission", e.target.value)} placeholder="0.00" className="w-full text-center outline-none font-bold text-sm" />
+                      </div>
+                      <div className="p-2 flex items-center justify-center">
+                        <input type="text" value={rule.price} onChange={e => updatePriceRule(idx, "price", e.target.value)} placeholder="السعر الأساسي" className="w-full text-center outline-none font-bold text-sm" />
+                      </div>
+                      <div className="p-2 flex items-center justify-center bg-gray-50">
+                        <input type="text" value={rule.name} onChange={e => updatePriceRule(idx, "name", e.target.value)} placeholder="الوصف" className="w-full text-right bg-transparent outline-none text-sm text-gray-500" />
+                      </div>
+                    </div>
+                    {/* Row 2: Distance Rules */}
+                    <div className="grid grid-cols-4 divide-x divide-x-reverse divide-[#679632]">
+                      <div className="col-span-1 p-2 flex items-center justify-center border-l border-[#679632]">
+                        <span className="text-sm font-bold">كم</span>
+                      </div>
+                      <div className="col-span-1 p-2 flex items-center justify-center border-l border-[#679632]">
+                        <input type="text" value={rule.max_distance} onChange={e => updatePriceRule(idx, "max_distance", e.target.value)} placeholder="المسافة" className="w-full text-center outline-none font-bold text-sm" />
+                      </div>
+                      <div className="col-span-2 p-2 relative flex items-center bg-white">
+                        <select value={rule.distance_scale} onChange={e => updatePriceRule(idx, "distance_scale", e.target.value)} className="w-full appearance-none outline-none text-sm font-bold text-right pr-2">
+                          <option value="bigger">أكبر من</option>
+                          <option value="less_or_equal">أقل من أو يساوي</option>
+                        </select>
+                        <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#679632] pointer-events-none" />
+                        <button type="button" onClick={() => removePriceRule(idx)} className="absolute left-8 top-1/2 -translate-y-1/2 text-red-400 hover:text-red-600 p-1">
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {activePrices.length === 0 && (
+                <div className="text-center py-6 text-gray-400 text-sm font-bold border-2 border-dashed border-gray-200 rounded-xl">لا توجد تسعيرات لهذا النوع</div>
               )}
             </div>
-          </div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={onEdit} className="p-1.5 rounded-lg text-[#679632] hover:bg-[#F6FAF0]">
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={onDelete} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "النوع", value: car.car_type?.name },
-            { label: "الموديل", value: car.model },
-            { label: "السنة", value: car.year },
-            { label: "اللون", value: car.color },
-          ].map((r) => r.value ? (
-            <div key={r.label} className="bg-[#F6FAF0] rounded-xl px-3 py-2">
-              <p className="text-[10px] text-gray-400">{r.label}</p>
-              <p className="font-bold text-[#1F4A10] text-xs mt-0.5">{String(r.value)}</p>
+            
+            {/* Action Buttons */}
+            <div className="pt-6 grid grid-cols-3 gap-3">
+              <button type="button" onClick={() => setForm(p => ({...p, is_active: !p.is_active}))} 
+                className={`py-3.5 rounded-xl font-bold text-sm transition-colors ${!form.is_active ? 'bg-gray-200 text-gray-700' : 'bg-[#2A3642] text-white hover:opacity-90'}`}>
+                {form.is_active ? "تعطيل" : "تفعيل"}
+              </button>
+              <button type="button" onClick={handleDelete} disabled={!isEdit || deleting} 
+                className="py-3.5 rounded-xl bg-[#FF4B4B] text-white font-bold text-sm hover:opacity-90 transition-colors disabled:opacity-50">
+                {deleting ? "جاري الحذف..." : "حذف السيارة"}
+              </button>
+              <button type="button" onClick={submit} disabled={saving} 
+                className="py-3.5 rounded-xl bg-[#679632] text-white font-bold text-sm hover:bg-[#1F4A10] transition-colors disabled:opacity-50">
+                {saving ? "جاري التحديث..." : "تحديث"}
+              </button>
             </div>
-          ) : null)}
-        </div>
-
-        {car.driver && (
-          <div className="flex items-center gap-2 p-2.5 bg-[#F6FAF0] rounded-xl border border-[#D4EDA8]/50">
-            <User className="w-4 h-4 text-[#679632] flex-shrink-0" />
-            <div>
-              <p className="text-[10px] text-gray-400">السائق</p>
-              <p className="font-bold text-[#1F4A10] text-xs">{car.driver.name}</p>
-            </div>
-            <Shield className="w-3.5 h-3.5 text-green-500 mr-auto" />
           </div>
-        )}
-
-        {/* Platform badges */}
-        <div className="flex gap-1.5">
-          <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-lg">
-            <Smartphone className="w-2.5 h-2.5" /> Android
-          </span>
-          <span className="flex items-center gap-1 text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-lg">
-            <Apple className="w-2.5 h-2.5" /> iOS
-          </span>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
 export default function CarsManagement() {
-  const [cars, setCars] = useState<Car[]>([]);
+  const [items, setItems] = useState<Car[]>([]);
   const [carTypes, setCarTypes] = useState<CarType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [modal, setModal] = useState<Partial<Car> | null>(null);
-  const [toast, setToast] = useState("");
+  const [err, setErr] = useState("");
+  const [modal, setModal] = useState<{ show: boolean; data?: Partial<Car> }>({ show: false });
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [view, setView] = useState<"grid" | "table">("grid");
 
-  const load = () => {
-    setLoading(true); setError("");
-    Promise.all([getCars(), getCarTypes()])
-      .then(([c, t]) => { setCars(c.data ?? []); setCarTypes(t.data ?? []); })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+  const loadData = async () => {
+    setLoading(true); setErr("");
+    try {
+      const [carsRes, typesRes] = await Promise.all([getCars(), getCarTypes()]);
+      setItems(carsRes.data ?? []);
+      setCarTypes(typesRes.data ?? []);
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "فشل جلب البيانات"); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  useEffect(() => { loadData(); }, []);
 
-  const handleSave = async (form: Partial<Car>) => {
-    if (form.uuid) await editCar(form);
-    else await addCar(form);
-    showToast(form.uuid ? "✅ تم التعديل" : "✅ تمت الإضافة");
-    load();
+  const handleEdit = async (c: Car) => {
+    try {
+      setLoading(true);
+      const res = await showCar(c.uuid);
+      setModal({ show: true, data: res.data });
+    } catch (e) { alert("فشل جلب تفاصيل السيارة"); }
+    finally { setLoading(false); }
   };
 
-  const handleDelete = async (uuid: string, name: string) => {
-    if (!confirm(`حذف "${name}"?`)) return;
-    try { await deleteCar(uuid); showToast("🗑️ تم الحذف"); load(); }
-    catch (e: unknown) { showToast("خطأ: " + (e instanceof Error ? e.message : String(e))); }
+  const handleSave = async (data: FormData) => {
+    if (modal.data?.uuid) await editCar(data);
+    else await addCar(data);
+    await loadData();
   };
 
-  const filtered = cars.filter((c) => {
-    const matchSearch = !search || c.name?.includes(search) || c.plate_number?.includes(search) || c.driver?.name?.includes(search);
-    const matchType = typeFilter === "all" || c.car_type?.uuid === typeFilter;
-    return matchSearch && matchType;
-  });
+  const handleDelete = async (uuid: string) => {
+    await deleteCar(uuid);
+    await loadData();
+  };
 
-  const withDriverCount = cars.filter((c) => c.driver).length;
+  const filtered = items.filter(c => !search || c.name?.includes(search));
 
   return (
-    <div className="space-y-5" dir="rtl">
-      {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#1F4A10] text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-bold z-50">{toast}</div>}
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-6" dir="rtl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-heading font-black text-[#1F4A10]">إدارة السيارات</h2>
-          <p className="text-sm text-gray-500 mt-0.5">جميع المركبات المسجلة على منصة مشوار</p>
+          <h2 className="text-3xl font-heading font-black text-[#1F4A10]">إدارة فئات السيارات وتسعيرها</h2>
+          <p className="text-sm text-gray-500 mt-1">إضافة وتعديل فئات المركبات المتاحة (سطحة، دباب...) وإدارة تسعيرتها حسب النوع</p>
         </div>
         <div className="flex gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F6FAF0] border border-[#D4EDA8]">
-            <Smartphone className="w-3.5 h-3.5 text-green-600" />
-            <Apple className="w-3.5 h-3.5 text-gray-600" />
-            <span className="text-xs font-bold text-[#679632]">متزامن</span>
-          </div>
-          <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition-colors">
-            <RefreshCw className="w-4 h-4" /> تحديث
-          </button>
-          <button onClick={() => setModal({})} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1F4A10] text-white text-sm font-bold hover:bg-[#2A5A14] transition-colors">
-            <Plus className="w-4 h-4" /> إضافة سيارة
+          <button onClick={loadData} className="p-2.5 rounded-xl bg-white border border-gray-200 text-[#1F4A10] hover:bg-gray-50 transition-all shadow-sm"><RefreshCw className="w-5 h-5" /></button>
+          <button onClick={() => setModal({ show: true, data: {} })} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-[#1F4A10] to-[#679632] text-white text-sm font-bold hover:shadow-lg transition-all active:scale-95">
+            <Plus className="w-5 h-5" /> إضافة فئة مركبة
           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "إجمالي السيارات", value: cars.length, color: "#1F4A10", bg: "#D4EDA8" },
-          { label: "مربوطة بسائقين", value: withDriverCount, color: "#16a34a", bg: "#dcfce7" },
-          { label: "بدون سائق", value: cars.length - withDriverCount, color: "#d97706", bg: "#fef3c7" },
-          { label: "أنواع السيارات", value: carTypes.length, color: "#7c3aed", bg: "#ede9fe" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-3xl font-heading font-black" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-            <div className="h-1 rounded-full mt-3" style={{ background: s.bg }} />
-          </div>
-        ))}
+      <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-2">
+        <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-xl text-gray-400"><Search className="w-5 h-5" /></div>
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="ابحث باسم المركبة..." className="flex-1 bg-transparent border-none text-sm font-bold outline-none" />
+        {search && <button onClick={() => setSearch("")} className="p-2 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632]"
-            placeholder="البحث بالاسم، رقم اللوحة، أو السائق..."
-            value={search} onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-gray-400" />
-            </button>
-          )}
-        </div>
-        <select
-          value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] bg-white min-w-[160px]"
-        >
-          <option value="all">كل الأنواع</option>
-          {carTypes.map((t) => <option key={t.uuid} value={t.uuid}>{t.name}</option>)}
-        </select>
-        {/* View toggle */}
-        <div className="flex gap-1 bg-[#F6FAF0] rounded-xl p-1">
-          <button onClick={() => setView("grid")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === "grid" ? "bg-white shadow text-[#1F4A10]" : "text-gray-400"}`}>
-            ⊞ شبكة
-          </button>
-          <button onClick={() => setView("table")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === "table" ? "bg-white shadow text-[#1F4A10]" : "text-gray-400"}`}>
-            ≡ جدول
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" /></div>
-      ) : error ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-          <XCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
-          <p className="text-red-500 font-bold text-sm">{error}</p>
-          <button onClick={load} className="mt-3 text-sm text-[#679632] underline">إعادة المحاولة</button>
-        </div>
+      {err ? (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 font-bold border border-red-100"><AlertCircle className="w-5 h-5" /> {err}</div>
+      ) : loading ? (
+        <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-[#D4EDA8] border-t-[#679632] rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl p-16 text-center shadow-sm border border-gray-100">
-          <CarIcon className="w-14 h-14 mx-auto mb-4 text-gray-200" />
-          <p className="font-bold text-gray-400">لا توجد سيارات</p>
-          {!search && <button onClick={() => setModal({})} className="mt-3 text-sm text-[#679632] underline font-bold">أضف أول سيارة</button>}
-        </div>
-      ) : view === "grid" ? (
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((c) => (
-            <CarCard key={c.uuid} car={c} onEdit={() => setModal(c)} onDelete={() => handleDelete(c.uuid, c.name)} />
-          ))}
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <CarIcon className="w-16 h-16 mb-4 opacity-20" />
+          <p className="font-bold text-lg text-gray-500">لا توجد سيارات</p>
+          <p className="text-sm mt-1">قم بإضافة فئات السيارات مثل سطحة لتظهر هنا</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-[#F6FAF0]">
-                <tr>
-                  {["السيارة", "رقم اللوحة", "النوع", "الموديل", "السنة", "اللون", "السائق", ""].map((h) => (
-                    <th key={h} className="text-right py-3.5 px-4 text-xs font-bold text-[#1F4A10]/60 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((c) => (
-                  <tr key={c.uuid} className="hover:bg-[#F6FAF0]/60 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#D4EDA8] flex items-center justify-center flex-shrink-0">
-                          <CarIcon className="w-4 h-4 text-[#1F4A10]" />
-                        </div>
-                        <span className="font-bold text-[#1F4A10]">{c.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-gray-600 text-xs">{c.plate_number ?? "—"}</td>
-                    <td className="py-3.5 px-4 text-gray-600 text-xs">{c.car_type?.name ?? "—"}</td>
-                    <td className="py-3.5 px-4 text-gray-600 text-xs">{c.model ?? "—"}</td>
-                    <td className="py-3.5 px-4 text-gray-600 text-xs">{c.year ?? "—"}</td>
-                    <td className="py-3.5 px-4 text-xs">
-                      {c.color ? (
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-3 h-3 rounded-full" style={{ background: "#6b7280" }} />
-                          {c.color}
-                        </span>
-                      ) : "—"}
-                    </td>
-                    <td className="py-3.5 px-4 text-gray-600 text-xs">{c.driver?.name ?? <span className="text-gray-300">بدون سائق</span>}</td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => setModal(c)} className="p-1.5 rounded-lg text-[#679632] hover:bg-[#F6FAF0] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDelete(c.uuid, c.name)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-4 py-3 border-t border-gray-50 text-xs text-gray-400 text-center">
-            عرض {filtered.length} من {cars.length} سيارة
-          </div>
-        </div>
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AnimatePresence>
+            {filtered.map(c => (
+              <motion.div key={c.uuid} variants={itemVariants} layout 
+                onClick={() => handleEdit(c)}
+                className="bg-white rounded-[2rem] border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden flex flex-col items-center">
+                <div className="aspect-square w-full rounded-2xl bg-gray-50 flex items-center justify-center p-4 mb-4 relative overflow-hidden group-hover:bg-[#F6FAF0] transition-colors">
+                  {c.image ? <img src={getImageUrl(c.image)} className="w-full h-full object-contain mix-blend-multiply" /> : <CarIcon className="w-12 h-12 text-gray-300" />}
+                  <div className={`absolute top-3 left-3 w-3 h-3 rounded-full border-2 border-white shadow-sm ${c.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                </div>
+                <h3 className="text-lg font-black font-heading text-center text-[#1F4A10]">{c.name}</h3>
+                <div className="flex justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs font-bold text-[#679632] bg-[#D4EDA8]/50 px-3 py-1 rounded-full">تعديل التسعير والتفاصيل</span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
-      {modal && <Modal initial={modal} carTypes={carTypes} onSave={handleSave} onClose={() => setModal(null)} />}
+      <AnimatePresence>
+        {modal.show && <EditModal initial={modal.data || {}} carTypes={carTypes} onSave={handleSave} onDelete={handleDelete} onClose={() => setModal({ show: false })} />}
+      </AnimatePresence>
     </div>
   );
 }
