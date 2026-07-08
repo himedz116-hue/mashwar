@@ -88,9 +88,10 @@ export const changeAdminPassword = (data: { old_password: string; password: stri
   request("/api/admin/change_password", { method: "POST", body: JSON.stringify(data) });
 
 // ── Settings ──────────────────────────────────────────────
-export const getTerms = () => request<{ data: { terms: string } }>("/api/admin/term");
-export const editTerms = (terms: string) =>
-  request("/api/admin/edit_terms", { method: "PUT", body: JSON.stringify({ terms }) });
+export const getTerms = () =>
+  request<{ data: { description: string } }>("/api/admin/term");
+export const editTerms = (description: string) =>
+  request("/api/admin/edit_terms", { method: "PUT", body: JSON.stringify({ description }) });
 
 export const getMaxDistance = () =>
   request<{ data: { inside_max_km: number | string } }>("/api/admin/setting/max-distance-cars");

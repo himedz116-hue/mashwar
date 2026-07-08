@@ -38,17 +38,12 @@ function SectionCard({ title, description, icon: Icon, children }: {
 }
 
 export default function AppSettings() {
-  // Terms
+  // Terms & Conditions
   const [terms, setTerms] = useState("");
   const [loadingTerms, setLoadingTerms] = useState(true);
   const [savingTerms, setSavingTerms] = useState(false);
   const [toastTerms, setToastTerms] = useState("");
   const [errTerms, setErrTerms] = useState("");
-
-  // Privacy policy (separate text)
-  const [privacy, setPrivacy] = useState("");
-  const [savingPrivacy, setSavingPrivacy] = useState(false);
-  const [toastPrivacy, setToastPrivacy] = useState("");
 
   // Max distance (inside city)
   const [insideMaxKm, setInsideMaxKm] = useState<number | "">("");
@@ -82,13 +77,7 @@ export default function AppSettings() {
 
   useEffect(() => {
     getTerms()
-      .then((r) => {
-        const t = r.data?.terms ?? "";
-        // Try to split if privacy policy is embedded with a separator
-        const parts = t.split("\n---PRIVACY---\n");
-        setTerms(parts[0] ?? "");
-        setPrivacy(parts[1] ?? "");
-      })
+      .then((r) => setTerms(r.data?.description ?? ""))
       .catch(() => setErrTerms("تعذّر تحميل الشروط"))
       .finally(() => setLoadingTerms(false));
 
@@ -112,23 +101,11 @@ export default function AppSettings() {
     e.preventDefault();
     setSavingTerms(true); setErrTerms("");
     try {
-      const combined = privacy ? `${terms}\n---PRIVACY---\n${privacy}` : terms;
-      await editTerms(combined);
+      await editTerms(terms);
       showToast(setToastTerms, "✅ تم حفظ الشروط بنجاح");
     } catch (e: unknown) {
       setErrTerms(e instanceof Error ? e.message : String(e));
     } finally { setSavingTerms(false); }
-  };
-
-  const savePrivacy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingPrivacy(true);
-    try {
-      const combined = privacy ? `${terms}\n---PRIVACY---\n${privacy}` : terms;
-      await editTerms(combined);
-      showToast(setToastPrivacy, "✅ تم حفظ سياسة الخصوصية");
-    } catch { /* ignore */ }
-    finally { setSavingPrivacy(false); }
   };
 
   const saveMaxDist = async (e: React.FormEvent) => {
@@ -391,27 +368,6 @@ export default function AppSettings() {
         )}
       </SectionCard>
 
-      {/* Privacy Policy */}
-      <SectionCard title="سياسة الخصوصية" description="نص سياسة الخصوصية الظاهر في التطبيق على Android و iOS" icon={Shield}>
-        <form onSubmit={savePrivacy} className="space-y-4">
-          <textarea
-            value={privacy} onChange={(e) => setPrivacy(e.target.value)}
-            rows={10}
-            placeholder="اكتب سياسة الخصوصية هنا..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] resize-none leading-relaxed"
-          />
-          <div className="flex items-center gap-3 justify-between">
-            <p className="text-xs text-gray-400">{privacy.length} حرف</p>
-            <div className="flex items-center gap-3">
-              {toastPrivacy && <p className="text-green-600 text-xs font-bold">{toastPrivacy}</p>}
-              <button type="submit" disabled={savingPrivacy}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] disabled:opacity-50 transition-colors">
-                <Check className="w-4 h-4" /> {savingPrivacy ? "جاري الحفظ..." : "حفظ السياسة"}
-              </button>
-            </div>
-          </div>
-        </form>
-      </SectionCard>
     </div>
   );
 }
