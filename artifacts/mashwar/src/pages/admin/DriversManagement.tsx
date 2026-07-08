@@ -158,7 +158,13 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
 
   useEffect(() => {
     showDriver(uuid)
-      .then((r) => setDriver(r.data))
+      .then((r) => {
+        // Temporary debug: log the raw driver payload so we can inspect the
+        // actual field names the backend uses for vehicle/car data.
+        // eslint-disable-next-line no-console
+        console.log("[debug] driver payload:", r.data);
+        setDriver(r.data);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [uuid]);
