@@ -165,12 +165,10 @@ function normalizeCar(d: Record<string, any>): Car | undefined {
 export interface PlateLookupLink { label: string; url: string; }
 export interface PlateLookupResult {
   success: boolean;
-  data?: {
-    make?: string; model?: string; year?: string | number;
-    color?: string; owner_type?: string; status?: string;
-    registration_expiry?: string; [key: string]: unknown;
-  };
+  source?: "elm_yakeen" | "moi" | string;
+  data?: Record<string, unknown>;
   message?: string;
+  needs_api_key?: boolean;
   inquiry_links?: PlateLookupLink[];
 }
 // NOTE: This intentionally does NOT use request() (which targets the Meshwar

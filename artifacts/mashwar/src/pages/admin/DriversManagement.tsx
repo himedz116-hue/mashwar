@@ -450,9 +450,12 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                       driver.car?.car_type?.name ?? driver.car?.name ??
                       driver.truck_type ?? driver.car_name ??
                       (driver.car_type as any)?.name ?? "—";
+                    // Use license as final fallback so the field the driver
+                    // actually filled in (stored as "license") is shown
                     const plateNumber =
                       driver.car?.plate_number ?? driver.plate_number ??
-                      driver.car_number ?? driver.car_plate ?? "—";
+                      driver.car_number ?? driver.car_plate ??
+                      driver.license ?? "—";
                     const carModel =
                       driver.car?.model ?? driver.car_model ?? d.model ?? "—";
                     const carYear =
@@ -631,12 +634,23 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                     if (r.success && r.data) {
                                       const fields = Object.entries(r.data)
                                         .filter(([, v]) => v !== null && v !== undefined && v !== "");
+                                      const sourceLabel: Record<string, string> = {
+                                        elm_yakeen: "Elm Yakeen",
+                                        moi: "وزارة الداخلية",
+                                      };
                                       return (
                                         <div className="space-y-3">
+                                          {r.source && (
+                                            <div className="flex items-center gap-1.5">
+                                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold border border-green-200">
+                                                ✓ {sourceLabel[r.source] ?? r.source}
+                                              </span>
+                                            </div>
+                                          )}
                                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                             {fields.map(([key, val]) => (
                                               <div key={key} className="bg-[#F6FAF0] rounded-xl p-3 border border-[#D4EDA8]">
-                                                <p className="text-[10px] text-gray-400 font-bold mb-0.5 capitalize">{key.replace(/_/g, " ")}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold mb-0.5">{key.replace(/_/g, " ")}</p>
                                                 <p className="font-bold text-[#1F4A10] text-sm">{String(val)}</p>
                                               </div>
                                             ))}
@@ -651,6 +665,15 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                           <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                                           <p className="text-sm text-amber-800 font-medium">{r.message ?? "خدمة الاستعلام غير متاحة حالياً."}</p>
                                         </div>
+                                        {r.needs_api_key && (
+                                          <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                            <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                                            <div>
+                                              <p className="text-xs font-bold text-blue-800 mb-0.5">لتفعيل البحث التلقائي الكامل</p>
+                                              <p className="text-xs text-blue-700">أضف مفتاح <span dir="ltr" className="font-mono">ELM_API_KEY</span> من خدمة Elm (<span dir="ltr">api.elm.sa</span>) في إعدادات المشروع</p>
+                                            </div>
+                                          </div>
+                                        )}
                                         {r.inquiry_links && r.inquiry_links.length > 0 && (
                                           <div className="flex flex-wrap gap-2">
                                             {r.inquiry_links.map((link, i) => (
