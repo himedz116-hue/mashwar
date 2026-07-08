@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import {
   getDrivers, showDriver, sendDriverNotification, acceptDriver,
-  blockUser, getOrders, getImageUrl, type Driver, type Order
+  blockUser, getOrders, getImageUrl, lookupSaudiPlate,
+  type Driver, type Order, type PlateLookupResult
 } from "@/lib/meshwarApi";
 import {
   Search, RefreshCw, Star, Phone, MapPin, Car, CheckCircle,
   XCircle, Clock, Eye, ChevronDown, Bell, Send, X, Shield,
   Ban, Smartphone, Apple, UserCheck, AlertTriangle, User,
   Calendar, CreditCard, ChevronRight, Activity, Navigation, Image as ImageIcon,
-  ZoomIn, ExternalLink, FileText, Flag, Hash
+  ZoomIn, ExternalLink, FileText, Flag, Hash, Search as SearchIcon,
+  Loader2, Info, FileCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -155,16 +157,13 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [plateLookup, setPlateLookup] = useState<{
+    open: boolean; loading: boolean; result: PlateLookupResult | null;
+  }>({ open: false, loading: false, result: null });
 
   useEffect(() => {
     showDriver(uuid)
-      .then((r) => {
-        // Temporary debug: log the raw driver payload so we can inspect the
-        // actual field names the backend uses for vehicle/car data.
-        // eslint-disable-next-line no-console
-        console.log("[debug] driver payload:", r.data);
-        setDriver(r.data);
-      })
+      .then((r) => setDriver(r.data))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [uuid]);
@@ -443,89 +442,257 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                     </motion.div>
                   )}
 
-                  {activeTab === "vehicle" && (
-                    <motion.div key="vehicle" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
-                      {driver.car || driver.truck_type ? (
-                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#F6FAF0] to-transparent rounded-bl-full -z-10" />
-                          <h4 className="font-bold text-[#1F4A10] text-lg mb-6 flex items-center gap-2">
-                            <Car className="w-5 h-5 text-[#679632]" /> معلومات المركبة
-                          </h4>
+                  {activeTab === "vehicle" && (() => {
+                    // Resolve vehicle fields from both nested car object and
+                    // flat driver-level fields (backend may return either shape)
+                    const d = driver as unknown as Record<string, any>;
+                    const vehicleType =
+                      driver.car?.car_type?.name ?? driver.car?.name ??
+                      driver.truck_type ?? driver.car_name ??
+                      (driver.car_type as any)?.name ?? "—";
+                    const plateNumber =
+                      driver.car?.plate_number ?? driver.plate_number ??
+                      driver.car_number ?? driver.car_plate ?? "—";
+                    const carModel =
+                      driver.car?.model ?? driver.car_model ?? d.model ?? "—";
+                    const carYear =
+                      driver.car?.year ?? driver.car_year ?? d.car_year ?? "—";
+                    const carColor =
+                      driver.car?.color ?? driver.car_color ?? "—";
+                    const carImage = driver.car?.image;
+                    const carTypeIcon = driver.car?.car_type?.icon;
+                    const hasVehicleData =
+                      vehicleType !== "—" || plateNumber !== "—" ||
+                      !!driver.driving_license || !!driver.car_license || !!driver.car;
 
-                          <div className="flex flex-col sm:flex-row gap-6 mb-6">
-                            {/* Vehicle icon / photo */}
-                            <div className="flex-shrink-0 flex flex-col items-center gap-3">
-                              {driver.car?.image ? (
-                                <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.car!.image))}
-                                  className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-[#D4EDA8] bg-white shadow-sm group relative">
-                                  <img src={getImageUrl(driver.car.image)} className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                    <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  </div>
-                                </button>
-                              ) : driver.car?.car_type?.icon ? (
-                                <div className="w-28 h-28 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center p-4">
-                                  <img src={getImageUrl(driver.car.car_type.icon)} className="w-full h-full object-contain" />
+                    const doLookup = async () => {
+                      if (plateNumber === "—" || !plateNumber) return;
+                      setPlateLookup({ open: true, loading: true, result: null });
+                      try {
+                        const res = await lookupSaudiPlate(plateNumber);
+                        setPlateLookup({ open: true, loading: false, result: res });
+                      } catch {
+                        setPlateLookup({ open: true, loading: false, result: { success: false, message: "تعذّر الاتصال بخدمة الاستعلام" } });
+                      }
+                    };
+
+                    return (
+                      <motion.div key="vehicle" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-5">
+                        {!hasVehicleData && (
+                          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            <Car className="w-14 h-14 text-gray-200 mb-3" />
+                            <p className="text-gray-500 font-bold">لم يقم السائق بإضافة مركبة حتى الآن</p>
+                          </div>
+                        )}
+
+                        {/* ── TEMPORARY DIAGNOSTIC — remove once plate field is confirmed ── */}
+                        <details className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                          <summary className="text-xs font-bold text-amber-700 cursor-pointer select-none">
+                            🔧 تشخيص مؤقت — الحقول الخام من API (اضغط للعرض)
+                          </summary>
+                          <div className="mt-3 space-y-3">
+                            <div>
+                              <p className="text-[10px] font-bold text-amber-600 mb-1">حقول السائق المسطّحة (flat driver fields):</p>
+                              <pre dir="ltr" className="text-[9px] bg-white rounded-lg p-2 overflow-auto max-h-48 whitespace-pre-wrap break-all text-gray-700">
+                                {JSON.stringify(
+                                  Object.fromEntries(
+                                    Object.entries(driver as unknown as Record<string, unknown>)
+                                      .filter(([k]) => !['avatar','face_image','national_id','driving_license','car_license','identity_image1','identity_image2','license_image1','license_image2'].includes(k))
+                                  ),
+                                  null, 2
+                                )}
+                              </pre>
+                            </div>
+                            {(driver as any).car && (
+                              <div>
+                                <p className="text-[10px] font-bold text-amber-600 mb-1">كائن السيارة (car object):</p>
+                                <pre dir="ltr" className="text-[9px] bg-white rounded-lg p-2 overflow-auto max-h-32 whitespace-pre-wrap break-all text-gray-700">
+                                  {JSON.stringify((driver as any).car, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+
+                        {hasVehicleData && (
+                          <>
+                            {/* ── Vehicle photo + 3 required fields ──────────────── */}
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-[#F6FAF0] to-transparent rounded-bl-full -z-10" />
+                              <h4 className="font-bold text-[#1F4A10] text-lg mb-5 flex items-center gap-2">
+                                <Car className="w-5 h-5 text-[#679632]" /> معلومات المركبة
+                              </h4>
+
+                              <div className="flex flex-col sm:flex-row gap-5">
+                                {/* Vehicle image / icon */}
+                                <div className="flex-shrink-0 flex flex-col items-center gap-3">
+                                  {carImage ? (
+                                    <button type="button" onClick={() => setLightboxUrl(getImageUrl(carImage))}
+                                      className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#D4EDA8] bg-white shadow-sm group relative">
+                                      <img src={getImageUrl(carImage)} className="w-full h-full object-cover" />
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                        <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </div>
+                                    </button>
+                                  ) : carTypeIcon ? (
+                                    <div className="w-24 h-24 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center p-3">
+                                      <img src={getImageUrl(carTypeIcon)} className="w-full h-full object-contain" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-24 h-24 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center">
+                                      <Car className="w-10 h-10 text-[#679632]" />
+                                    </div>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="w-28 h-28 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center">
-                                  <Car className="w-12 h-12 text-[#679632]" />
+
+                                {/* 3 key required fields */}
+                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                  {/* 1. نوع السيارة */}
+                                  <div className="bg-[#F6FAF0] rounded-xl p-4 border border-[#D4EDA8]">
+                                    <p className="text-xs font-bold text-[#679632] mb-1 flex items-center gap-1">
+                                      <Car className="w-3.5 h-3.5" /> نوع السيارة
+                                    </p>
+                                    <p className="font-black text-[#1F4A10] text-lg leading-tight">{vehicleType}</p>
+                                    {carModel !== "—" && <p className="text-xs text-gray-500 mt-0.5">{carModel} {carYear !== "—" ? `· ${carYear}` : ""}</p>}
+                                  </div>
+
+                                  {/* 2. لوحة السيارة */}
+                                  <div className="bg-white rounded-xl p-4 border-2 border-gray-800 shadow-sm">
+                                    <p className="text-xs font-bold text-gray-500 mb-1 flex items-center gap-1">
+                                      <Hash className="w-3.5 h-3.5" /> لوحة السيارة
+                                    </p>
+                                    <p className="font-black text-gray-900 text-lg tracking-widest leading-tight">{plateNumber}</p>
+                                    <button
+                                      type="button"
+                                      onClick={doLookup}
+                                      disabled={plateNumber === "—"}
+                                      className="mt-2 text-[10px] font-bold text-[#679632] flex items-center gap-1 hover:underline disabled:opacity-40 disabled:no-underline"
+                                    >
+                                      <SearchIcon className="w-3 h-3" /> استعلام سعودي
+                                    </button>
+                                  </div>
+
+                                  {/* 3. رخصة القيادة */}
+                                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                    <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                                      <FileCheck className="w-3.5 h-3.5 text-[#679632]" /> رخصة القيادة
+                                    </p>
+                                    {driver.driving_license ? (
+                                      <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.driving_license))}
+                                        className="relative w-full h-20 rounded-lg overflow-hidden border border-gray-200 group bg-gray-50">
+                                        <img src={getImageUrl(driver.driving_license)} alt="رخصة القيادة" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                                          <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
+                                      </button>
+                                    ) : (
+                                      <div className="w-full h-20 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
+                                        <span className="text-xs text-gray-400 font-bold">غير مرفوعة</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Extra details row */}
+                              {(carColor !== "—" || driver.car?.is_active !== undefined) && (
+                                <div className="mt-5 pt-4 border-t border-gray-50 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                                  <div><p className="text-xs text-gray-400 mb-0.5">اللون</p>
+                                    <div className="flex items-center gap-1.5">
+                                      {carColor !== "—" && <div className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: carColor }} />}
+                                      <p className="font-bold text-[#1F4A10]">{carColor}</p>
+                                    </div>
+                                  </div>
+                                  <div><p className="text-xs text-gray-400 mb-0.5">حالة المركبة</p>
+                                    <Badge status={driver.car?.is_active === false ? "offline" : driver.status === "accepted" ? "accepted" : driver.status} />
+                                  </div>
                                 </div>
                               )}
-                              <div className="inline-block bg-white border-2 border-gray-800 rounded-lg px-3 py-1 shadow-sm">
-                                <p className="font-black text-gray-800 tracking-widest text-center">{driver.car?.plate_number ?? "—"}</p>
-                              </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
-                              <div><p className="text-xs text-gray-400 mb-1">نوع سيارة السطحة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.truck_type ?? "—"}</p></div>
-                              <div><p className="text-xs text-gray-400 mb-1">نوع المركبة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.car_type?.name ?? driver.car?.name ?? "—"}</p></div>
-                              <div><p className="text-xs text-gray-400 mb-1">الموديل</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.model ?? "—"}</p></div>
-                              <div><p className="text-xs text-gray-400 mb-1">سنة الصنع</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.year ?? "—"}</p></div>
-                              <div>
-                                <p className="text-xs text-gray-400 mb-1">اللون</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  {driver.car?.color && <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: driver.car.color }}></div>}
-                                  <p className="font-bold text-lg text-[#1F4A10]">{driver.car?.color ?? "—"}</p>
+                            {/* ── استمارة المركبة ─────────────────────────────── */}
+                            {driver.car_license && (
+                              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 font-bold">
+                                  <FileText className="w-4 h-4 text-[#679632]" /> استمارة المركبة (رخصة السير)
                                 </div>
+                                <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.car_license))}
+                                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F6FAF0] text-[#679632] font-bold text-xs hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
+                                  <Eye className="w-3.5 h-3.5" /> عرض الاستمارة
+                                </button>
                               </div>
-                              <div>
-                                <p className="text-xs text-gray-400 mb-1">حالة المركبة</p>
-                                <Badge status={driver.car?.is_active === false ? "offline" : driver.status === "accepted" ? "accepted" : driver.status} />
-                              </div>
-                            </div>
-                          </div>
+                            )}
 
-                          {driver.car_license && (
-                            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <FileText className="w-4 h-4" /> استمارة المركبة (رخصة السير)
-                              </div>
-                              <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.car_license))}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F6FAF0] text-[#679632] font-bold text-xs hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
-                                <Eye className="w-3.5 h-3.5" /> عرض الاستمارة
-                              </button>
-                            </div>
-                          )}
+                            {/* ── Saudi Plate Lookup Modal ─────────────────────── */}
+                            {plateLookup.open && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <h5 className="font-bold text-[#1F4A10] flex items-center gap-2">
+                                    <SearchIcon className="w-4 h-4 text-[#679632]" /> استعلام عن اللوحة: {plateNumber}
+                                  </h5>
+                                  <button type="button" onClick={() => setPlateLookup({ open: false, loading: false, result: null })}
+                                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
+                                    <X className="w-4 h-4 text-gray-400" />
+                                  </button>
+                                </div>
 
-                          {/* TEMPORARY DEBUG: shows the raw data returned by the
-                              server so we can identify the real field names for
-                              vehicle info. Remove once the mapping is confirmed. */}
-                          <details className="mt-4 pt-4 border-t border-dashed border-amber-200">
-                            <summary className="text-xs font-bold text-amber-600 cursor-pointer">🔧 بيانات تشخيصية مؤقتة (اضغط للعرض)</summary>
-                            <pre dir="ltr" className="mt-2 text-[10px] leading-relaxed bg-amber-50 text-amber-900 rounded-lg p-3 overflow-auto max-h-64 whitespace-pre-wrap break-all">
-                              {JSON.stringify(driver, null, 2)}
-                            </pre>
-                          </details>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                          <Car className="w-16 h-16 text-gray-200 mb-4" />
-                          <p className="text-gray-500 font-bold">لم يقم السائق بإضافة مركبة حتى الآن</p>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
+                                {plateLookup.loading && (
+                                  <div className="flex items-center justify-center py-8 gap-3 text-[#679632]">
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span className="text-sm font-bold">جاري الاستعلام من المرور السعودي...</span>
+                                  </div>
+                                )}
+
+                                {!plateLookup.loading && plateLookup.result && (
+                                  (() => {
+                                    const r = plateLookup.result;
+                                    if (r.success && r.data) {
+                                      const fields = Object.entries(r.data)
+                                        .filter(([, v]) => v !== null && v !== undefined && v !== "");
+                                      return (
+                                        <div className="space-y-3">
+                                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            {fields.map(([key, val]) => (
+                                              <div key={key} className="bg-[#F6FAF0] rounded-xl p-3 border border-[#D4EDA8]">
+                                                <p className="text-[10px] text-gray-400 font-bold mb-0.5 capitalize">{key.replace(/_/g, " ")}</p>
+                                                <p className="font-bold text-[#1F4A10] text-sm">{String(val)}</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                    // Not available — show message + links
+                                    return (
+                                      <div className="space-y-3">
+                                        <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                                          <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                          <p className="text-sm text-amber-800 font-medium">{r.message ?? "خدمة الاستعلام غير متاحة حالياً."}</p>
+                                        </div>
+                                        {r.inquiry_links && r.inquiry_links.length > 0 && (
+                                          <div className="flex flex-wrap gap-2">
+                                            {r.inquiry_links.map((link, i) => (
+                                              <a key={i} href={link.url} target="_blank" rel="noreferrer"
+                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F6FAF0] text-[#679632] font-bold text-xs hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
+                                                <ExternalLink className="w-3.5 h-3.5" /> {link.label}
+                                              </a>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()
+                                )}
+                              </motion.div>
+                            )}
+                          </>
+                        )}
+                      </motion.div>
+                    );
+                  })()}
 
                   {activeTab === "trips" && (
                     <motion.div key="trips" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">

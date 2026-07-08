@@ -127,69 +127,139 @@ export const deleteUser = (uuid: string) =>
 // Some backend responses return car fields flattened on the driver object
 // instead of nested under `car`. Normalize both shapes into a single `Car`
 // object so the UI never has to guess which shape it received.
+// We intentionally try many field-name variants because different API versions
+// use different naming conventions (snake_case, camelCase, prefixed, etc.).
 function normalizeCar(d: Record<string, any>): Car | undefined {
-  const rawCar = d.car ?? d.driver_car ?? d.vehicle ?? null;
+  const rawCar = d.car ?? d.driver_car ?? d.vehicle ?? d.driverCar ?? null;
+  // Every possible flat field name the backend might use for plate number
+  const flatPlate =
+    d.plate_number ?? d.car_number ?? d.car_plate ?? d.license_plate ??
+    d.plateNumber ?? d.carNumber ?? d.vehicle_number ?? d.registration_number ??
+    d.vehicle_plate ?? d.car_plate_number ?? null;
+  const flatCarType = d.car_type ?? d.carType ?? d.vehicle_type ?? d.vehicleType ?? null;
   const flatHasCarData = !!(
-    d.plate_number || d.car_number || d.car_plate ||
-    d.car_type || d.car_model || d.car_color || d.car_year || d.car_image
+    flatPlate || flatCarType || d.car_model || d.car_color ||
+    d.car_year || d.car_image || d.car_name || d.truck_type ||
+    d.model || d.car_model_name
   );
   if (!rawCar && !flatHasCarData) return undefined;
   return {
     uuid: rawCar?.uuid ?? d.car_uuid ?? d.uuid,
-    name: rawCar?.name ?? d.car_name ?? d.truck_type ?? "",
-    plate_number: rawCar?.plate_number ?? d.plate_number ?? d.car_number ?? d.car_plate,
-    model: rawCar?.model ?? d.car_model ?? d.model,
-    year: rawCar?.year ?? d.car_year,
-    color: rawCar?.color ?? d.car_color,
-    image: rawCar?.image ?? d.car_image,
-    car_type: rawCar?.car_type ?? d.car_type,
+    name: rawCar?.name ?? d.car_name ?? d.truck_type ?? d.vehicle_name ?? "",
+    plate_number:
+      rawCar?.plate_number ?? rawCar?.plate ?? rawCar?.number ??
+      rawCar?.car_number ?? rawCar?.car_plate ?? rawCar?.license_plate ??
+      rawCar?.registration ?? rawCar?.vehicle_number ?? rawCar?.number_plate ??
+      flatPlate,
+    model: rawCar?.model ?? d.car_model ?? d.model ?? d.car_model_name,
+    year: rawCar?.year ?? d.car_year ?? d.vehicle_year,
+    color: rawCar?.color ?? d.car_color ?? d.vehicle_color,
+    image: rawCar?.image ?? d.car_image ?? d.vehicle_image,
+    car_type: rawCar?.car_type ?? flatCarType,
     is_active: rawCar?.is_active,
     created_at: rawCar?.created_at,
   };
 }
 
+// ── Saudi Vehicle Plate Lookup ─────────────────────────────
+export interface PlateLookupLink { label: string; url: string; }
+export interface PlateLookupResult {
+  success: boolean;
+  data?: {
+    make?: string; model?: string; year?: string | number;
+    color?: string; owner_type?: string; status?: string;
+    registration_expiry?: string; [key: string]: unknown;
+  };
+  message?: string;
+  inquiry_links?: PlateLookupLink[];
+}
+// NOTE: This intentionally does NOT use request() (which targets the Meshwar
+// backend).  The plate-lookup endpoint lives on OUR local api-server artifact,
+// which is served at /api through Replit's shared-domain proxy.  Using
+// window.location.origin ensures we always hit the correct server regardless
+// of which port the Vite dev server is running on.
+export const lookupSaudiPlate = async (plate_number: string): Promise<PlateLookupResult> => {
+  const base =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : (import.meta.env.VITE_LOCAL_API_URL as string | undefined) ?? "";
+  const url = `${base}/api/plate-lookup?plate=${encodeURIComponent(plate_number)}`;
+  const res = await fetch(url, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) {
+    return {
+      success: false,
+      message: `خطأ في الاتصال (${res.status})`,
+      inquiry_links: [{ label: "بوابة أبشر", url: "https://absher.sa" }],
+    };
+  }
+  const json: unknown = await res.json().catch(() => null);
+  if (json && typeof json === "object" && !Array.isArray(json)) {
+    return json as PlateLookupResult;
+  }
+  return { success: false, message: "استجابة غير متوقعة من الخادم" };
+};
+
 // ── Drivers ───────────────────────────────────────────────
+function normalizeDriver(d: Record<string, any>): Driver {
+  const car = normalizeCar(d);
+  return {
+    ...d,
+    avatar: d.image || d.avatar,
+    phone: d.mobile_without_prefix || d.mobile || d.phone,
+    dob: d.date_of_birth || d.dob,
+    national_id: d.identity_image1 || d.national_id,
+    driving_license: d.license_image1 || d.driving_license,
+    car_license: d.license_image2 || d.car_license,
+    face_image: d.image || d.face_image,
+    truck_type: d.car_name || d.truck_type,
+    rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
+    trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
+    balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
+    car,
+    // Mirror plate_number onto the driver level so the UI can read it even
+    // when car is undefined (e.g. backend returns it flat on the driver row)
+    plate_number:
+      car?.plate_number ??
+      d.plate_number ?? d.car_number ?? d.car_plate ??
+      d.license_plate ?? d.vehicle_plate ?? d.registration_number,
+    car_type: car?.car_type ?? d.car_type ?? d.vehicle_type,
+    car_model: car?.model ?? d.car_model ?? d.model,
+    car_color: car?.color ?? d.car_color,
+    car_year: car?.year ?? d.car_year,
+  } as Driver;
+}
+
 export const getDrivers = async (params = "") => {
   const res = await request<{ data: Driver[] }>(`/api/admin/drivers${params ? `?${params}` : ""}`);
-  res.data = (res.data || []).map(raw => {
-    const d = raw as unknown as Record<string, any>;
-    return {
-      ...d,
-      avatar: d.image || d.avatar,
-      phone: d.mobile_without_prefix || d.mobile || d.phone,
-      dob: d.date_of_birth || d.dob,
-      national_id: d.identity_image1 || d.national_id,
-      driving_license: d.license_image1 || d.driving_license,
-      car_license: d.license_image2 || d.car_license,
-      face_image: d.image || d.face_image,
-      truck_type: d.car_name || d.truck_type,
-      rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
-      trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
-      balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
-      car: normalizeCar(d),
-    } as Driver;
-  });
+  res.data = (res.data || []).map(raw => normalizeDriver(raw as unknown as Record<string, any>));
   return res;
 };
 export const showDriver = async (uuid: string) => {
   const res = await request<{ data: Driver }>(`/api/admin/drivers/show?uuid=${uuid}`);
   if (res.data) {
-    const d = res.data as unknown as Record<string, any>;
-    res.data = {
-      ...d,
-      avatar: d.image || d.avatar,
-      phone: d.mobile_without_prefix || d.mobile || d.phone,
-      dob: d.date_of_birth || d.dob,
-      national_id: d.identity_image1 || d.national_id,
-      driving_license: d.license_image1 || d.driving_license,
-      car_license: d.license_image2 || d.car_license,
-      face_image: d.image || d.face_image,
-      truck_type: d.car_name || d.truck_type,
-      rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
-      trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
-      balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
-      car: normalizeCar(d),
-    } as Driver;
+    // Temporary: log raw payload so we can identify the correct plate field name
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.log("[meshwar:showDriver] raw payload keys:", Object.keys(res.data as unknown as Record<string, unknown>));
+      const raw = res.data as unknown as Record<string, any>;
+      const carRaw = raw.car ?? raw.driver_car ?? raw.vehicle ?? null;
+      // eslint-disable-next-line no-console
+      console.log("[meshwar:showDriver] car object:", carRaw);
+      // eslint-disable-next-line no-console
+      console.log("[meshwar:showDriver] plate-related flat fields:", {
+        plate_number: raw.plate_number,
+        car_number: raw.car_number,
+        car_plate: raw.car_plate,
+        license_plate: raw.license_plate,
+        vehicle_plate: raw.vehicle_plate,
+        registration_number: raw.registration_number,
+        car_name: raw.car_name,
+        truck_type: raw.truck_type,
+      });
+    }
+    res.data = normalizeDriver(res.data as unknown as Record<string, any>);
   }
   return res;
 };
@@ -448,6 +518,14 @@ export interface Driver {
   os_version?: string;
   truck_type?: string;
   car_name?: string;
+  // Vehicle fields that may appear flattened on the driver object
+  plate_number?: string;
+  car_number?: string;
+  car_plate?: string;
+  car_type?: CarType;
+  car_model?: string;
+  car_color?: string;
+  car_year?: number;
 }
 export interface CarType {
   uuid: string;
