@@ -7,7 +7,8 @@ import {
   Search, RefreshCw, Star, Phone, MapPin, Car, CheckCircle,
   XCircle, Clock, Eye, ChevronDown, Bell, Send, X, Shield,
   Ban, Smartphone, Apple, UserCheck, AlertTriangle, User,
-  Calendar, CreditCard, ChevronRight, Activity, Navigation, Image as ImageIcon
+  Calendar, CreditCard, ChevronRight, Activity, Navigation, Image as ImageIcon,
+  ZoomIn, ExternalLink, FileText, Flag, Hash
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -163,14 +164,20 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
   }, [uuid]);
 
   useEffect(() => {
-    if (activeTab === "trips" && driver) {
+    // Fetch as soon as the driver loads (not only when the trips tab is
+    // opened) so the completed-trips stat on the info tab can fall back to
+    // a computed value when the driver record itself doesn't report one.
+    if (driver) {
       setLoadingOrders(true);
       getOrders({ driver_uuid: driver.uuid })
         .then((r) => setOrders(r.data ?? []))
         .catch(() => {})
         .finally(() => setLoadingOrders(false));
     }
-  }, [activeTab, driver]);
+  }, [driver]);
+
+  const completedTripsCount = orders.filter((o) => o.status === "completed").length;
+  const tripsCountDisplay = driver?.trips_count ?? (orders.length ? completedTripsCount : 0);
 
   const handleAccept = async () => {
     if (!driver) return;
@@ -310,11 +317,11 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
                               <p className="text-xs text-blue-600 font-bold mb-1">الرحلات المكتملة</p>
-                              <p className="text-2xl font-black text-blue-800">{driver.trips_count ?? 0}</p>
+                              <p className="text-2xl font-black text-blue-800">{loadingOrders && driver.trips_count == null ? "…" : tripsCountDisplay}</p>
                             </div>
                             <div className="bg-amber-50 p-3 rounded-xl border border-amber-100">
                               <p className="text-xs text-amber-600 font-bold mb-1 flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-500" /> التقييم</p>
-                              <p className="text-2xl font-black text-amber-800">{driver.rating ?? "—"}</p>
+                              <p className="text-2xl font-black text-amber-800">{driver.rating != null ? Number(driver.rating).toFixed(1) : "—"}</p>
                             </div>
                             <div className="bg-green-50 p-3 rounded-xl border border-green-100 col-span-2 flex justify-between items-center">
                               <div>
@@ -398,19 +405,31 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                 <div><p className="font-bold text-sm text-[#1F4A10]">{doc.label}</p></div>
                               </div>
                               <p className="text-xs text-gray-500 mb-4">{doc.desc}</p>
-                              
-                              <div className="mt-auto">
-                                {doc.url ? (
-                                  <a href={getImageUrl(doc.url)} target="_blank" rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#F6FAF0] rounded-xl text-[#679632] font-bold text-sm hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
+
+                              {doc.url ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setLightboxUrl(getImageUrl(doc.url))}
+                                    className="relative w-full h-28 rounded-xl overflow-hidden border border-gray-200 mb-3 group bg-white"
+                                  >
+                                    <img src={getImageUrl(doc.url)} alt={doc.label} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                      <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setLightboxUrl(getImageUrl(doc.url))}
+                                    className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-[#F6FAF0] rounded-xl text-[#679632] font-bold text-sm hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
                                     <Eye className="w-4 h-4" /> عرض الوثيقة كاملة
-                                  </a>
-                                ) : (
-                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-100 rounded-xl text-gray-400 font-bold text-sm">
-                                    <XCircle className="w-4 h-4" /> غير متوفرة
-                                  </div>
-                                )}
-                              </div>
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-gray-100 rounded-xl text-gray-400 font-bold text-sm">
+                                  <XCircle className="w-4 h-4" /> غير متوفرة
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -420,32 +439,68 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
 
                   {activeTab === "vehicle" && (
                     <motion.div key="vehicle" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
-                      {driver.car ? (
+                      {driver.car || driver.truck_type ? (
                         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#F6FAF0] to-transparent rounded-bl-full -z-10" />
                           <h4 className="font-bold text-[#1F4A10] text-lg mb-6 flex items-center gap-2">
                             <Car className="w-5 h-5 text-[#679632]" /> معلومات المركبة
                           </h4>
-                          
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div><p className="text-xs text-gray-400 mb-1">نوع سيارة السطحة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.truck_type ?? "—"}</p></div>
-                            <div><p className="text-xs text-gray-400 mb-1">نوع المركبة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.car_type?.name ?? "—"}</p></div>
-                            <div><p className="text-xs text-gray-400 mb-1">الموديل</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.model ?? "—"}</p></div>
-                            <div><p className="text-xs text-gray-400 mb-1">سنة الصنع</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car.year ?? "—"}</p></div>
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">رقم اللوحة</p>
-                              <div className="inline-block bg-white border-2 border-gray-800 rounded-lg px-3 py-1 shadow-sm mt-1">
-                                <p className="font-black text-gray-800 tracking-widest">{driver.car.plate_number ?? "—"}</p>
+
+                          <div className="flex flex-col sm:flex-row gap-6 mb-6">
+                            {/* Vehicle icon / photo */}
+                            <div className="flex-shrink-0 flex flex-col items-center gap-3">
+                              {driver.car?.image ? (
+                                <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.car!.image))}
+                                  className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-[#D4EDA8] bg-white shadow-sm group relative">
+                                  <img src={getImageUrl(driver.car.image)} className="w-full h-full object-cover" />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                    <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
+                                </button>
+                              ) : driver.car?.car_type?.icon ? (
+                                <div className="w-28 h-28 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center p-4">
+                                  <img src={getImageUrl(driver.car.car_type.icon)} className="w-full h-full object-contain" />
+                                </div>
+                              ) : (
+                                <div className="w-28 h-28 rounded-2xl bg-[#F6FAF0] border-2 border-[#D4EDA8] flex items-center justify-center">
+                                  <Car className="w-12 h-12 text-[#679632]" />
+                                </div>
+                              )}
+                              <div className="inline-block bg-white border-2 border-gray-800 rounded-lg px-3 py-1 shadow-sm">
+                                <p className="font-black text-gray-800 tracking-widest text-center">{driver.car?.plate_number ?? "—"}</p>
                               </div>
                             </div>
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">اللون</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                {driver.car.color && <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: driver.car.color }}></div>}
-                                <p className="font-bold text-lg text-[#1F4A10]">{driver.car.color ?? "—"}</p>
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
+                              <div><p className="text-xs text-gray-400 mb-1">نوع سيارة السطحة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.truck_type ?? "—"}</p></div>
+                              <div><p className="text-xs text-gray-400 mb-1">نوع المركبة</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.car_type?.name ?? driver.car?.name ?? "—"}</p></div>
+                              <div><p className="text-xs text-gray-400 mb-1">الموديل</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.model ?? "—"}</p></div>
+                              <div><p className="text-xs text-gray-400 mb-1">سنة الصنع</p><p className="font-bold text-lg text-[#1F4A10]">{driver.car?.year ?? "—"}</p></div>
+                              <div>
+                                <p className="text-xs text-gray-400 mb-1">اللون</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {driver.car?.color && <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: driver.car.color }}></div>}
+                                  <p className="font-bold text-lg text-[#1F4A10]">{driver.car?.color ?? "—"}</p>
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-400 mb-1">حالة المركبة</p>
+                                <Badge status={driver.car?.is_active === false ? "offline" : driver.status === "accepted" ? "accepted" : driver.status} />
                               </div>
                             </div>
                           </div>
+
+                          {driver.car_license && (
+                            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <FileText className="w-4 h-4" /> استمارة المركبة (رخصة السير)
+                              </div>
+                              <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.car_license))}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F6FAF0] text-[#679632] font-bold text-xs hover:bg-[#D4EDA8] border border-[#D4EDA8] transition-colors">
+                                <Eye className="w-3.5 h-3.5" /> عرض الاستمارة
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -498,28 +553,61 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                 </div>
                               </div>
                               
-                              <div className="bg-[#F6FAF0] rounded-xl p-3 flex items-center gap-4 text-sm mt-2">
-                                <div className="flex-1 flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><User className="w-3 h-3 text-gray-400" /></div>
-                                  <div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F6FAF0] rounded-xl p-3 text-sm mt-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><User className="w-3 h-3 text-gray-400" /></div>
+                                  <div className="min-w-0">
                                     <p className="text-xs text-gray-500">العميل</p>
-                                    <p className="font-bold text-[#1F4A10] text-xs">{order.user?.name ?? "عميل غير معروف"}</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs truncate">{order.user?.name ?? "عميل غير معروف"}</p>
                                   </div>
                                 </div>
-                                <div className="flex-1 flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><CreditCard className="w-3 h-3 text-gray-400" /></div>
-                                  <div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><CreditCard className="w-3 h-3 text-gray-400" /></div>
+                                  <div className="min-w-0">
                                     <p className="text-xs text-gray-500">الدفع</p>
-                                    <p className="font-bold text-[#1F4A10] text-xs">{order.payment_method === "cash" ? "نقدي" : "بطاقة"}</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs">{order.payment_method === "cash" ? "نقدي" : order.payment_method === "card" ? "بطاقة" : order.payment_method ?? "—"}</p>
                                   </div>
                                 </div>
-                                <div className="flex-1 flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"><MapPin className="w-3 h-3 text-gray-400" /></div>
-                                  <div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><MapPin className="w-3 h-3 text-gray-400" /></div>
+                                  <div className="min-w-0">
                                     <p className="text-xs text-gray-500">المسافة</p>
-                                    <p className="font-bold text-[#1F4A10] text-xs">{order.distance} كم</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs">{order.distance != null ? `${order.distance} كم` : "—"}</p>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                                    {order.car_type?.icon
+                                      ? <img src={getImageUrl(order.car_type.icon)} className="w-4 h-4 object-contain" />
+                                      : <Car className="w-3 h-3 text-gray-400" />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs text-gray-500">نوع المركبة</p>
+                                    <p className="font-bold text-[#1F4A10] text-xs truncate">{order.car_type?.name ?? "—"}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {(order.from_address || order.to_address) && (
+                                <div className="mt-3 space-y-2 border-t border-gray-50 pt-3">
+                                  {order.from_address && (
+                                    <div className="flex items-start gap-2 text-xs">
+                                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5"><Flag className="w-3 h-3 text-green-600" /></div>
+                                      <div><span className="text-gray-400">من: </span><span className="font-bold text-[#1F4A10]">{order.from_address}</span></div>
+                                    </div>
+                                  )}
+                                  {order.to_address && (
+                                    <div className="flex items-start gap-2 text-xs">
+                                      <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-3 h-3 text-red-600" /></div>
+                                      <div><span className="text-gray-400">إلى: </span><span className="font-bold text-[#1F4A10]">{order.to_address}</span></div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="mt-3 flex items-center justify-between border-t border-gray-50 pt-2">
+                                <p className="text-[10px] text-gray-400 flex items-center gap-1"><Hash className="w-3 h-3" /> {order.uuid}</p>
+                                {order.note && <p className="text-xs text-gray-500 flex items-center gap-1"><FileText className="w-3 h-3" /> {order.note}</p>}
                               </div>
                             </div>
                           ))}
@@ -534,6 +622,34 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
           ) : null}
         </motion.div>
       </div>
+      <AnimatePresence>
+        {lightboxUrl && (
+          <motion.div
+            key="lightbox"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-sm"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }}
+              className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute -top-12 left-0 right-0 flex items-center justify-between px-1">
+                <a href={lightboxUrl} target="_blank" rel="noreferrer"
+                  className="flex items-center gap-1.5 text-white/80 hover:text-white text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors">
+                  <ExternalLink className="w-3.5 h-3.5" /> فتح في تبويب جديد
+                </a>
+                <button type="button" onClick={() => setLightboxUrl(null)}
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <img src={lightboxUrl} alt="وثيقة" className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain bg-white" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {showNotif && driver && <NotifModal driver={driver} onClose={() => setShowNotif(false)} />}
     </>
   );

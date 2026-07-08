@@ -124,26 +124,57 @@ export const blockUser = (data: { uuid: string; status: "active" | "blocked" }) 
 export const deleteUser = (uuid: string) =>
   request(`/api/admin/users/destroy?uuid=${uuid}`, { method: "DELETE" });
 
+// Some backend responses return car fields flattened on the driver object
+// instead of nested under `car`. Normalize both shapes into a single `Car`
+// object so the UI never has to guess which shape it received.
+function normalizeCar(d: Record<string, any>): Car | undefined {
+  const rawCar = d.car ?? d.driver_car ?? d.vehicle ?? null;
+  const flatHasCarData = !!(
+    d.plate_number || d.car_number || d.car_plate ||
+    d.car_type || d.car_model || d.car_color || d.car_year || d.car_image
+  );
+  if (!rawCar && !flatHasCarData) return undefined;
+  return {
+    uuid: rawCar?.uuid ?? d.car_uuid ?? d.uuid,
+    name: rawCar?.name ?? d.car_name ?? d.truck_type ?? "",
+    plate_number: rawCar?.plate_number ?? d.plate_number ?? d.car_number ?? d.car_plate,
+    model: rawCar?.model ?? d.car_model ?? d.model,
+    year: rawCar?.year ?? d.car_year,
+    color: rawCar?.color ?? d.car_color,
+    image: rawCar?.image ?? d.car_image,
+    car_type: rawCar?.car_type ?? d.car_type,
+    is_active: rawCar?.is_active,
+    created_at: rawCar?.created_at,
+  };
+}
+
 // ── Drivers ───────────────────────────────────────────────
 export const getDrivers = async (params = "") => {
   const res = await request<{ data: Driver[] }>(`/api/admin/drivers${params ? `?${params}` : ""}`);
-  res.data = (res.data || []).map(d => ({
-    ...d,
-    avatar: d.image || d.avatar,
-    phone: d.mobile_without_prefix || d.mobile || d.phone,
-    dob: d.date_of_birth || d.dob,
-    national_id: d.identity_image1 || d.national_id,
-    driving_license: d.license_image1 || d.driving_license,
-    car_license: d.license_image2 || d.car_license,
-    face_image: d.image || d.face_image,
-    truck_type: d.car_name || d.truck_type
-  }));
+  res.data = (res.data || []).map(raw => {
+    const d = raw as unknown as Record<string, any>;
+    return {
+      ...d,
+      avatar: d.image || d.avatar,
+      phone: d.mobile_without_prefix || d.mobile || d.phone,
+      dob: d.date_of_birth || d.dob,
+      national_id: d.identity_image1 || d.national_id,
+      driving_license: d.license_image1 || d.driving_license,
+      car_license: d.license_image2 || d.car_license,
+      face_image: d.image || d.face_image,
+      truck_type: d.car_name || d.truck_type,
+      rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
+      trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
+      balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
+      car: normalizeCar(d),
+    } as Driver;
+  });
   return res;
 };
 export const showDriver = async (uuid: string) => {
   const res = await request<{ data: Driver }>(`/api/admin/drivers/show?uuid=${uuid}`);
   if (res.data) {
-    const d = res.data;
+    const d = res.data as unknown as Record<string, any>;
     res.data = {
       ...d,
       avatar: d.image || d.avatar,
@@ -153,8 +184,12 @@ export const showDriver = async (uuid: string) => {
       driving_license: d.license_image1 || d.driving_license,
       car_license: d.license_image2 || d.car_license,
       face_image: d.image || d.face_image,
-      truck_type: d.car_name || d.truck_type
-    };
+      truck_type: d.car_name || d.truck_type,
+      rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
+      trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
+      balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
+      car: normalizeCar(d),
+    } as Driver;
   }
   return res;
 };
