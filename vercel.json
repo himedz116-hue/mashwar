@@ -1,12 +1,9 @@
 {
-  "buildCommand": "pnpm -C artifacts/mashwar run build",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "cd artifacts/mashwar && npx vite build --config vite.config.ts",
   "outputDirectory": "artifacts/mashwar/dist/public",
-  "framework": "vite",
+  "framework": null,
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
