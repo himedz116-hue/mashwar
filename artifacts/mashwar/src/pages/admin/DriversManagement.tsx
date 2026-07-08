@@ -485,35 +485,6 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                           </div>
                         )}
 
-                        {/* ── TEMPORARY DIAGNOSTIC — remove once plate field is confirmed ── */}
-                        <details className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                          <summary className="text-xs font-bold text-amber-700 cursor-pointer select-none">
-                            🔧 تشخيص مؤقت — الحقول الخام من API (اضغط للعرض)
-                          </summary>
-                          <div className="mt-3 space-y-3">
-                            <div>
-                              <p className="text-[10px] font-bold text-amber-600 mb-1">حقول السائق المسطّحة (flat driver fields):</p>
-                              <pre dir="ltr" className="text-[9px] bg-white rounded-lg p-2 overflow-auto max-h-48 whitespace-pre-wrap break-all text-gray-700">
-                                {JSON.stringify(
-                                  Object.fromEntries(
-                                    Object.entries(driver as unknown as Record<string, unknown>)
-                                      .filter(([k]) => !['avatar','face_image','national_id','driving_license','car_license','identity_image1','identity_image2','license_image1','license_image2'].includes(k))
-                                  ),
-                                  null, 2
-                                )}
-                              </pre>
-                            </div>
-                            {(driver as any).car && (
-                              <div>
-                                <p className="text-[10px] font-bold text-amber-600 mb-1">كائن السيارة (car object):</p>
-                                <pre dir="ltr" className="text-[9px] bg-white rounded-lg p-2 overflow-auto max-h-32 whitespace-pre-wrap break-all text-gray-700">
-                                  {JSON.stringify((driver as any).car, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-                          </div>
-                        </details>
-
                         {hasVehicleData && (
                           <>
                             {/* ── Vehicle photo + 3 required fields ──────────────── */}
@@ -577,19 +548,27 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                     <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
                                       <FileCheck className="w-3.5 h-3.5 text-[#679632]" /> رخصة القيادة
                                     </p>
-                                    {driver.driving_license ? (
-                                      <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.driving_license))}
-                                        className="relative w-full h-20 rounded-lg overflow-hidden border border-gray-200 group bg-gray-50">
-                                        <img src={getImageUrl(driver.driving_license)} alt="رخصة القيادة" className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
-                                          <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </div>
-                                      </button>
-                                    ) : (
-                                      <div className="w-full h-20 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
-                                        <span className="text-xs text-gray-400 font-bold">غير مرفوعة</span>
+                                    {/* رقم الرخصة النصي */}
+                                    {driver.license && (
+                                      <div className="mb-2 px-2 py-1 bg-[#F6FAF0] rounded-lg border border-[#D4EDA8] inline-flex items-center gap-1.5">
+                                        <Hash className="w-3 h-3 text-[#679632]" />
+                                        <span className="font-black text-[#1F4A10] text-sm tracking-wide" dir="ltr">{driver.license}</span>
                                       </div>
                                     )}
+                                    {/* صورة الرخصة */}
+                                    {driver.driving_license ? (
+                                      <button type="button" onClick={() => setLightboxUrl(getImageUrl(driver.driving_license))}
+                                        className="relative w-full h-16 rounded-lg overflow-hidden border border-gray-200 group bg-gray-50">
+                                        <img src={getImageUrl(driver.driving_license)} alt="رخصة القيادة" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                                          <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
+                                      </button>
+                                    ) : !driver.license ? (
+                                      <div className="w-full h-16 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
+                                        <span className="text-xs text-gray-400 font-bold">غير مرفوعة</span>
+                                      </div>
+                                    ) : null}
                                   </div>
                                 </div>
                               </div>

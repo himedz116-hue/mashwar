@@ -214,12 +214,12 @@ function normalizeDriver(d: Record<string, any>): Driver {
     car_license: d.license_image2 || d.car_license,
     face_image: d.image || d.face_image,
     truck_type: d.car_name || d.truck_type,
+    // رقم رخصة القيادة النصي (الباكند يُرجعه كـ "license")
+    license: d.license ?? d.license_number ?? d.driving_license_number,
     rating: d.rating ?? d.avg_rating ?? d.average_rating ?? d.rate,
     trips_count: d.trips_count ?? d.completed_trips ?? d.completed_trips_count ?? d.total_trips ?? d.orders_count,
     balance: d.balance ?? d.wallet ?? d.wallet_balance ?? d.available_balance,
     car,
-    // Mirror plate_number onto the driver level so the UI can read it even
-    // when car is undefined (e.g. backend returns it flat on the driver row)
     plate_number:
       car?.plate_number ??
       d.plate_number ?? d.car_number ?? d.car_plate ??
@@ -239,26 +239,6 @@ export const getDrivers = async (params = "") => {
 export const showDriver = async (uuid: string) => {
   const res = await request<{ data: Driver }>(`/api/admin/drivers/show?uuid=${uuid}`);
   if (res.data) {
-    // Temporary: log raw payload so we can identify the correct plate field name
-    if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.log("[meshwar:showDriver] raw payload keys:", Object.keys(res.data as unknown as Record<string, unknown>));
-      const raw = res.data as unknown as Record<string, any>;
-      const carRaw = raw.car ?? raw.driver_car ?? raw.vehicle ?? null;
-      // eslint-disable-next-line no-console
-      console.log("[meshwar:showDriver] car object:", carRaw);
-      // eslint-disable-next-line no-console
-      console.log("[meshwar:showDriver] plate-related flat fields:", {
-        plate_number: raw.plate_number,
-        car_number: raw.car_number,
-        car_plate: raw.car_plate,
-        license_plate: raw.license_plate,
-        vehicle_plate: raw.vehicle_plate,
-        registration_number: raw.registration_number,
-        car_name: raw.car_name,
-        truck_type: raw.truck_type,
-      });
-    }
     res.data = normalizeDriver(res.data as unknown as Record<string, any>);
   }
   return res;
@@ -518,6 +498,8 @@ export interface Driver {
   os_version?: string;
   truck_type?: string;
   car_name?: string;
+  // رقم رخصة القيادة النصي (يرجعه الباكند كـ "license")
+  license?: string;
   // Vehicle fields that may appear flattened on the driver object
   plate_number?: string;
   car_number?: string;
