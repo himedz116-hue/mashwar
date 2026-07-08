@@ -1,3 +1,4 @@
 - [Meshwar API client](meshwar-api.md) — real backend at meshwarsv2.meshwars.net; auth via Bearer token in localStorage; HTTPS enforced via env var fallback
 - [Admin panel structure](admin-panel.md) — 16 sections across 6 nav groups; real API login replaces old hardcoded password gate
 - [Admin panel upgrades](admin-panel-upgrades.md) — comprehensive upgrade: image uploads (multipart), real API connections, full CRUD in 7 sections
+- [esbuild permissions on zip import](esbuild-permissions.md) — zip imports strip +x from esbuild binaries causing EACCES; fixed via postinstall script
