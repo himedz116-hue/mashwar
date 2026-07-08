@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 
 const router = Router();
 
@@ -125,7 +125,7 @@ async function queryMoi(cleanPlate: string): Promise<Record<string, unknown> | n
 }
 
 // ── Route ─────────────────────────────────────────────────────────────────────
-router.get("/plate-lookup", async (req, res) => {
+router.get("/plate-lookup", async (req: Request, res: Response) => {
   const plate = (req.query["plate"] as string | undefined)?.trim();
   if (!plate) {
     res.status(400).json({ success: false, message: "رقم اللوحة مطلوب" });
