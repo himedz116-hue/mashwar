@@ -138,24 +138,46 @@ function EditModal({
     }
   };
 
+  // Pure helper — no closure over component state.
+  // Priority: exact UUID match → null/undefined group (shared prices).
+  const findGroupIdx = (
+    groups: { car_type_uuid: string | null; prices: CarPriceRule[] }[],
+    typeUuid: string
+  ): number => {
+    const exact = groups.findIndex((g) => g.car_type_uuid === typeUuid);
+    if (exact !== -1) return exact;
+    // Fall back to null/empty-uuid group (prices not tied to a type)
+    return groups.findIndex((g) => !g.car_type_uuid);
+  };
+
   const getActiveTypePrices = (): CarPriceRule[] => {
-    const tabData = prices[activeTab] || [];
-    return tabData.find((t) => t.car_type_uuid === selectedTypeUuid)?.prices || [];
+    const groups = (prices[activeTab] || []) as { car_type_uuid: string | null; prices: CarPriceRule[] }[];
+    const idx = findGroupIdx(groups, selectedTypeUuid);
+    return idx !== -1 ? groups[idx].prices : [];
+  };
+
+  // Returns a new CarPrices object with the group guaranteed to exist.
+  const ensureGroup = (
+    prev: CarPrices,
+    tab: "inside" | "outside",
+    typeUuid: string
+  ): [CarPrices, number] => {
+    const groups = [...(prev[tab] || [])] as { car_type_uuid: string | null; prices: CarPriceRule[] }[];
+    let idx = findGroupIdx(groups, typeUuid);
+    if (idx === -1) {
+      groups.push({ car_type_uuid: typeUuid, prices: [] });
+      idx = groups.length - 1;
+    }
+    return [{ ...prev, [tab]: groups }, idx];
   };
 
   const updatePriceRule = (index: number, key: keyof CarPriceRule, value: unknown) => {
     setPrices((prev) => {
-      const next = { ...prev };
-      if (!next[activeTab]) next[activeTab] = [];
-      let typeIndex = next[activeTab].findIndex((t) => t.car_type_uuid === selectedTypeUuid);
-      if (typeIndex === -1) {
-        next[activeTab] = [...next[activeTab], { car_type_uuid: selectedTypeUuid, prices: [] }];
-        typeIndex = next[activeTab].length - 1;
-      }
-      const newPrices = [...next[activeTab][typeIndex].prices];
+      const [next, idx] = ensureGroup(prev, activeTab, selectedTypeUuid);
+      const newPrices = [...next[activeTab][idx].prices];
       newPrices[index] = { ...newPrices[index], [key]: value };
       next[activeTab] = next[activeTab].map((g, i) =>
-        i === typeIndex ? { ...g, prices: newPrices } : g
+        i === idx ? { ...g, prices: newPrices } : g
       );
       return next;
     });
@@ -163,27 +185,21 @@ function EditModal({
 
   const addPriceRule = () => {
     setPrices((prev) => {
-      const next = { ...prev };
-      if (!next[activeTab]) next[activeTab] = [];
-      let typeIndex = next[activeTab].findIndex((t) => t.car_type_uuid === selectedTypeUuid);
-      if (typeIndex === -1) {
-        next[activeTab] = [...next[activeTab], { car_type_uuid: selectedTypeUuid, prices: [] }];
-        typeIndex = next[activeTab].length - 1;
-      }
+      const [next, idx] = ensureGroup(prev, activeTab, selectedTypeUuid);
       const newPrices = [
-        ...next[activeTab][typeIndex].prices,
+        ...next[activeTab][idx].prices,
         {
-          car_type_uuid: selectedTypeUuid,
+          car_type_uuid: selectedTypeUuid || null,
           place_type: activeTab,
           distance_scale: "bigger",
           max_distance: "20",
           price: "",
           commission: "",
           name: "",
-        } as CarPriceRule,
+        } as unknown as CarPriceRule,
       ];
       next[activeTab] = next[activeTab].map((g, i) =>
-        i === typeIndex ? { ...g, prices: newPrices } : g
+        i === idx ? { ...g, prices: newPrices } : g
       );
       return next;
     });
@@ -191,15 +207,12 @@ function EditModal({
 
   const removePriceRule = (index: number) => {
     setPrices((prev) => {
-      const next = { ...prev };
-      const typeIndex = next[activeTab].findIndex((t) => t.car_type_uuid === selectedTypeUuid);
-      if (typeIndex > -1) {
-        const newPrices = [...next[activeTab][typeIndex].prices];
-        newPrices.splice(index, 1);
-        next[activeTab] = next[activeTab].map((g, i) =>
-          i === typeIndex ? { ...g, prices: newPrices } : g
-        );
-      }
+      const [next, idx] = ensureGroup(prev, activeTab, selectedTypeUuid);
+      const newPrices = [...next[activeTab][idx].prices];
+      newPrices.splice(index, 1);
+      next[activeTab] = next[activeTab].map((g, i) =>
+        i === idx ? { ...g, prices: newPrices } : g
+      );
       return next;
     });
   };
@@ -264,6 +277,7 @@ function EditModal({
                 <AlertCircle className="w-5 h-5" /> {err}
               </div>
             )}
+
 
             {/* Image & Name */}
             <div className="flex flex-col items-center gap-4">

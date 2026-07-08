@@ -216,13 +216,36 @@ export const deleteIntroduction = (uuid: string) =>
   request(`/api/admin/introductions/destroy?uuid=${uuid}`, { method: "DELETE" });
 
 // ── Helpers ───────────────────────────────────────────────
+function resolvePlaceType(val: unknown): "inside" | "outside" {
+  if (val === "outside" || val === 2 || val === "2") return "outside";
+  return "inside";
+}
+
+function resolveCarTypeUuid(rule: Record<string, unknown>): string {
+  // Try common field names for the car-type UUID
+  return (
+    (rule.car_type_uuid as string) ||
+    ((rule.car_type as Record<string, unknown>)?.uuid as string) ||
+    (rule.type_uuid as string) ||
+    (rule.carTypeUuid as string) ||
+    ""
+  );
+}
+
 function normalizeCarPrices(data: Record<string, unknown>): CarPrices {
-  const cp = (data.carPrices ?? data.car_prices) as unknown;
+  // Try every possible key name the API might use
+  const cp =
+    data.carPrices ??
+    data.car_prices ??
+    data.prices ??
+    data.car_type_prices ??
+    null;
+
   if (!cp) return { inside: [], outside: [] };
 
-  // Already in grouped format { inside: [...], outside: [...] }
+  // Already grouped: { inside: [...], outside: [...] }
   if (!Array.isArray(cp) && typeof cp === "object" && cp !== null) {
-    const grouped = cp as { inside?: unknown; outside?: unknown };
+    const grouped = cp as Record<string, unknown>;
     if (grouped.inside != null || grouped.outside != null) {
       return {
         inside: (grouped.inside as CarPrices["inside"]) || [],
@@ -231,17 +254,21 @@ function normalizeCarPrices(data: Record<string, unknown>): CarPrices {
     }
   }
 
-  // Flat array format — group by place_type then car_type_uuid
-  const flat: CarPriceRule[] = Array.isArray(cp) ? (cp as CarPriceRule[]) : [];
+  // Flat array — group by place_type then car_type_uuid
+  const flat: Record<string, unknown>[] = Array.isArray(cp) ? cp : [];
+
   const result: CarPrices = { inside: [], outside: [] };
   for (const rule of flat) {
-    const pt: "inside" | "outside" = rule.place_type === "outside" ? "outside" : "inside";
-    let group = result[pt].find((g) => g.car_type_uuid === rule.car_type_uuid);
+    const pt = resolvePlaceType(rule.place_type);
+    const typeUuid = resolveCarTypeUuid(rule);
+    if (!typeUuid) continue; // skip unparseable rules
+
+    let group = result[pt].find((g) => g.car_type_uuid === typeUuid);
     if (!group) {
-      group = { car_type_uuid: rule.car_type_uuid, prices: [] };
+      group = { car_type_uuid: typeUuid, prices: [] };
       result[pt].push(group);
     }
-    group.prices.push(rule);
+    group.prices.push(rule as unknown as CarPriceRule);
   }
   return result;
 }
@@ -251,14 +278,12 @@ export const getCars = async () => {
   return request<{ data: Car[] }>("/api/admin/cars");
 };
 export const showCar = async (uuid: string) => {
-  const res = await request<{ data: Car }>(`/api/admin/cars/show?uuid=${uuid}`);
-  if (res.data) {
-    res.data = {
-      ...res.data,
-      carPrices: normalizeCarPrices(res.data as unknown as Record<string, unknown>),
-    };
-  }
-  return res;
+  const raw = await request<{ data: Record<string, unknown> }>(`/api/admin/cars/show?uuid=${uuid}`);
+  const carPrices = normalizeCarPrices(raw.data ?? {});
+  return {
+    ...raw,
+    data: { ...(raw.data as unknown as Car), carPrices },
+  } as { data: Car };
 };
 export const addCar = (data: FormData) =>
   multipartRequest("/api/admin/cars/store", data);
