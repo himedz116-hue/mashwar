@@ -12,10 +12,13 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 function detectOS(device?: string, osVersion?: string): "ios" | "android" | "unknown" {
-  const raw = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
-  if (!raw) return "unknown";
-  if (raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple")) return "ios";
-  if (raw.includes("android")) return "android";
+  const combined = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
+  if (!combined) return "unknown";
+  if (/ios|iphone|ipad|ipod|apple|apns|darwin/.test(combined)) return "ios";
+  if (/android|google|fcm|samsung|huawei|xiaomi|oppo|vivo|oneplus|realme|pixel|motorola/.test(combined)) return "android";
+  const trimmed = combined.trim();
+  if (trimmed === "1") return "android";
+  if (trimmed === "2") return "ios";
   return "unknown";
 }
 
@@ -281,18 +284,18 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                             <div className="col-span-2 mt-2 pt-2 border-t border-gray-50">
                               <p className="text-xs text-gray-400">نظام التشغيل والجهاز</p>
                               {(() => {
+                                const hasData = !!(driver.device || driver.os_version);
+                                if (!hasData) return <span className="text-gray-300 mt-1">—</span>;
                                 const os = detectOS(driver.device, driver.os_version);
                                 const Icon = os === "ios" ? Apple : Smartphone;
-                                const label = os === "ios" ? "iOS" : os === "android" ? "Android" : "غير معروف";
-                                const textCls = os === "ios" ? "text-gray-700" : os === "android" ? "text-green-700" : "text-gray-400";
+                                const label = os === "ios" ? "iOS" : os === "android" ? "Android" : (driver.device || driver.os_version);
+                                const textCls = os === "ios" ? "text-gray-700" : os === "android" ? "text-green-700" : "text-gray-500";
                                 return (
                                   <p className={`font-bold flex items-center gap-2 mt-1 ${textCls}`}>
                                     <Icon className="w-4 h-4" />
                                     {label}
-                                    {(driver.device || driver.os_version) && (
-                                      <span className="text-xs font-mono text-gray-400">
-                                        {[driver.device, driver.os_version].filter(Boolean).join(" — ")}
-                                      </span>
+                                    {driver.os_version && os !== "unknown" && (
+                                      <span className="text-xs font-mono text-gray-400">{driver.os_version}</span>
                                     )}
                                   </p>
                                 );

@@ -11,33 +11,43 @@ import {
 } from "lucide-react";
 
 function detectOS(device?: string, osVersion?: string): "ios" | "android" | "unknown" {
-  const raw = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
-  if (!raw) return "unknown";
-  if (raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple")) return "ios";
-  if (raw.includes("android")) return "android";
+  const combined = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
+  if (!combined) return "unknown";
+  // iOS signals
+  if (/ios|iphone|ipad|ipod|apple|apns|darwin/.test(combined)) return "ios";
+  // Android signals (device names, tokens, OS names)
+  if (/android|google|fcm|samsung|huawei|xiaomi|oppo|vivo|oneplus|realme|pixel|motorola/.test(combined)) return "android";
+  // Numeric device type: "1" = android, "2" = ios (common API convention)
+  const trimmed = combined.trim();
+  if (trimmed === "1") return "android";
+  if (trimmed === "2") return "ios";
   return "unknown";
 }
 
 function PlatformBadge({ device, osVersion }: { device?: string; osVersion?: string }) {
+  const hasData = !!(device || osVersion);
+  if (!hasData) return <span className="text-xs text-gray-300">—</span>;
   const os = detectOS(device, osVersion);
+  const displayVersion = osVersion || null;
   if (os === "ios") return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg">
       <Apple className="w-3.5 h-3.5 text-gray-700" />
       <span className="text-xs font-bold text-gray-700">iOS</span>
-      {osVersion && <span className="text-[10px] text-gray-400 font-mono">{osVersion}</span>}
+      {displayVersion && <span className="text-[10px] text-gray-400 font-mono">{displayVersion}</span>}
     </div>
   );
   if (os === "android") return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 rounded-lg">
       <Smartphone className="w-3.5 h-3.5 text-green-700" />
       <span className="text-xs font-bold text-green-700">Android</span>
-      {osVersion && <span className="text-[10px] text-green-600 font-mono">{osVersion}</span>}
+      {displayVersion && <span className="text-[10px] text-green-600 font-mono">{displayVersion}</span>}
     </div>
   );
+  // Has data but unrecognised format — show raw value so admin can see it
   return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg">
       <Smartphone className="w-3.5 h-3.5 text-gray-400" />
-      <span className="text-xs font-bold text-gray-400">غير معروف</span>
+      <span className="text-xs font-mono text-gray-500">{device || osVersion}</span>
     </div>
   );
 }
@@ -130,7 +140,7 @@ function UserDetailModal({ user, onClose, onBlock, onDelete }: {
               { label: "الرحلات", value: user.trips_count ?? "—", icon: Car, color: "#1F4A10", bg: "#D4EDA8" },
               { label: "التقييم", value: user.rating ? `⭐ ${user.rating}` : "—", icon: Star, color: "#d97706", bg: "#fef3c7" },
               { label: "تاريخ التسجيل", value: user.created_at ? new Date(user.created_at).toLocaleDateString("ar-SA") : "—", icon: Calendar, color: "#2563eb", bg: "#dbeafe" },
-              { label: "المنصة", value: detectOS(user.device, user.os_version) === "ios" ? "iOS" : detectOS(user.device, user.os_version) === "android" ? "Android" : "غير معروف", icon: detectOS(user.device, user.os_version) === "ios" ? Apple : Smartphone, color: detectOS(user.device, user.os_version) === "ios" ? "#374151" : "#679632", bg: detectOS(user.device, user.os_version) === "ios" ? "#f3f4f6" : "#D4EDA8" },
+              { label: "المنصة", value: detectOS(user.device, user.os_version) === "ios" ? "iOS" : detectOS(user.device, user.os_version) === "android" ? "Android" : "—", icon: detectOS(user.device, user.os_version) === "ios" ? Apple : Smartphone, color: detectOS(user.device, user.os_version) === "ios" ? "#374151" : "#679632", bg: detectOS(user.device, user.os_version) === "ios" ? "#f3f4f6" : "#D4EDA8" },
             ].map((s) => (
               <div key={s.label} className="rounded-xl p-3 flex items-center gap-2.5" style={{ background: s.bg + "40", border: `1px solid ${s.bg}` }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: s.bg }}>

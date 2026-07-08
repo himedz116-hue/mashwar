@@ -28,6 +28,17 @@ function getMockDob(uuid: string): string {
   return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 }
 
+function detectOS(device?: string, osVersion?: string): "ios" | "android" | "unknown" {
+  const combined = `${device ?? ""} ${osVersion ?? ""}`.toLowerCase().trim();
+  if (!combined) return "unknown";
+  if (/ios|iphone|ipad|ipod|apple|apns|darwin/.test(combined)) return "ios";
+  if (/android|google|fcm|samsung|huawei|xiaomi|oppo|vivo|oneplus|realme|pixel|motorola/.test(combined)) return "android";
+  const trimmed = combined.trim();
+  if (trimmed === "1") return "android";
+  if (trimmed === "2") return "ios";
+  return "unknown";
+}
+
 function Avatar({ name, avatar, size = 12 }: { name?: string; avatar?: string; size?: number }) {
   const [err, setErr] = useState(false);
   const letter = ((name ?? "?")[0] ?? "?").toUpperCase();
@@ -165,29 +176,30 @@ function DriverFullModal({ uuid, onClose, onAction, onBlock, showToast }: {
                 
                 {/* Device Info */}
                 {(() => {
-                  const raw = `${driver.device ?? ""} ${driver.os_version ?? ""}`.toLowerCase();
-                  const isIos = raw.includes("ios") || raw.includes("iphone") || raw.includes("ipad") || raw.includes("apple");
-                  const isAndroid = raw.includes("android");
-                  const hasInfo = driver.device || driver.os_version;
+                  const hasInfo = !!(driver.device || driver.os_version);
                   if (!hasInfo) return null;
+                  const os = detectOS(driver.device, driver.os_version);
+                  const isIos = os === "ios";
+                  const isAndroid = os === "android";
                   const bgCls = isIos ? "bg-gray-50 border-gray-200" : isAndroid ? "bg-green-50 border-green-100" : "bg-gray-50 border-gray-200";
                   const textCls = isIos ? "text-gray-800" : isAndroid ? "text-green-800" : "text-gray-600";
+                  const valueCls = isIos ? "text-gray-600" : isAndroid ? "text-green-700" : "text-gray-500";
                   const Icon = isIos ? Apple : Smartphone;
-                  const label = isIos ? "iOS" : isAndroid ? "Android" : "جهاز";
+                  const label = isIos ? "iOS" : isAndroid ? "Android" : (driver.device || "جهاز");
                   return (
                     <div className={`mt-4 w-full rounded-xl p-3 border flex flex-col gap-2 text-right ${bgCls}`}>
                       <p className={`text-xs font-bold flex items-center gap-1.5 justify-center ${textCls}`}>
                         <Icon className="w-4 h-4"/> جهاز {label}
                       </p>
                       {driver.os_version && (
-                        <div className={`text-[10px] flex justify-between ${isIos ? "text-gray-600" : "text-green-700"}`}>
+                        <div className={`text-[10px] flex justify-between ${valueCls}`}>
                           <span>الإصدار:</span>
                           <span className="font-bold font-mono">{driver.os_version}</span>
                         </div>
                       )}
-                      {driver.device && (
-                        <div className={`text-[10px] flex justify-between ${isIos ? "text-gray-600" : "text-green-700"}`}>
-                          <span>الجهاز:</span>
+                      {driver.device && os === "unknown" && (
+                        <div className={`text-[10px] flex justify-between ${valueCls}`}>
+                          <span>القيمة:</span>
                           <span className="font-bold font-mono">{driver.device}</span>
                         </div>
                       )}
