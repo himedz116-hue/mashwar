@@ -215,16 +215,57 @@ export const editIntroduction = (data: FormData) =>
 export const deleteIntroduction = (uuid: string) =>
   request(`/api/admin/introductions/destroy?uuid=${uuid}`, { method: "DELETE" });
 
+// ── Helpers ───────────────────────────────────────────────
+function normalizeCarPrices(data: Record<string, unknown>): CarPrices {
+  const cp = (data.carPrices ?? data.car_prices) as unknown;
+  if (!cp) return { inside: [], outside: [] };
+
+  // Already in grouped format { inside: [...], outside: [...] }
+  if (!Array.isArray(cp) && typeof cp === "object" && cp !== null) {
+    const grouped = cp as { inside?: unknown; outside?: unknown };
+    if (grouped.inside != null || grouped.outside != null) {
+      return {
+        inside: (grouped.inside as CarPrices["inside"]) || [],
+        outside: (grouped.outside as CarPrices["outside"]) || [],
+      };
+    }
+  }
+
+  // Flat array format — group by place_type then car_type_uuid
+  const flat: CarPriceRule[] = Array.isArray(cp) ? (cp as CarPriceRule[]) : [];
+  const result: CarPrices = { inside: [], outside: [] };
+  for (const rule of flat) {
+    const pt: "inside" | "outside" = rule.place_type === "outside" ? "outside" : "inside";
+    let group = result[pt].find((g) => g.car_type_uuid === rule.car_type_uuid);
+    if (!group) {
+      group = { car_type_uuid: rule.car_type_uuid, prices: [] };
+      result[pt].push(group);
+    }
+    group.prices.push(rule);
+  }
+  return result;
+}
+
 // ── Cars ──────────────────────────────────────────────────
 export const getCars = async () => {
   return request<{ data: Car[] }>("/api/admin/cars");
 };
-export const showCar = (uuid: string) =>
-  request<{ data: Car }>(`/api/admin/cars/show?uuid=${uuid}`);
+export const showCar = async (uuid: string) => {
+  const res = await request<{ data: Car }>(`/api/admin/cars/show?uuid=${uuid}`);
+  if (res.data) {
+    res.data = {
+      ...res.data,
+      carPrices: normalizeCarPrices(res.data as unknown as Record<string, unknown>),
+    };
+  }
+  return res;
+};
 export const addCar = (data: FormData) =>
   multipartRequest("/api/admin/cars/store", data);
-export const editCar = (data: FormData) =>
-  multipartRequest("/api/admin/cars/edit", data); // Assuming edit endpoint takes multipart
+export const editCar = (data: FormData) => {
+  data.set("_method", "PUT");
+  return multipartRequest("/api/admin/cars/edit", data);
+};
 export const deleteCar = (uuid: string) =>
   request("/api/admin/cars/destroy", { method: "DELETE", body: JSON.stringify({ uuid }) });
 
