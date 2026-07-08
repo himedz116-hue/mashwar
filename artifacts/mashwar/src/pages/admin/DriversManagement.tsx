@@ -507,6 +507,16 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                               </button>
                             </div>
                           )}
+
+                          {/* TEMPORARY DEBUG: shows the raw data returned by the
+                              server so we can identify the real field names for
+                              vehicle info. Remove once the mapping is confirmed. */}
+                          <details className="mt-4 pt-4 border-t border-dashed border-amber-200">
+                            <summary className="text-xs font-bold text-amber-600 cursor-pointer">🔧 بيانات تشخيصية مؤقتة (اضغط للعرض)</summary>
+                            <pre dir="ltr" className="mt-2 text-[10px] leading-relaxed bg-amber-50 text-amber-900 rounded-lg p-3 overflow-auto max-h-64 whitespace-pre-wrap break-all">
+                              {JSON.stringify(driver, null, 2)}
+                            </pre>
+                          </details>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
