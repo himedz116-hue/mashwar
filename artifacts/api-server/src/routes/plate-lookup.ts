@@ -53,7 +53,7 @@ async function queryElmYakeen(
   };
 
   try {
-    const res = await fetch(
+    const res: any = await fetch(
       "https://api.elm.sa/elm/id/yakeen4trafic/1.0.0/GetVehicleInfoByPlateInfo",
       {
         method: "POST",
@@ -97,7 +97,7 @@ async function queryElmYakeen(
 // ── MOI Traffic fallback ──────────────────────────────────────────────────────
 async function queryMoi(cleanPlate: string): Promise<Record<string, unknown> | null> {
   try {
-    const res = await fetch(
+    const res: any = await fetch(
       `https://traffic.moi.gov.sa/wps/portal/traffic/services/inquiries/vehicleInquiry?plateNumber=${encodeURIComponent(cleanPlate)}`,
       {
         headers: {
