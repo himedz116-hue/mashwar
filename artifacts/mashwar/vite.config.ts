@@ -4,6 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rawPort = process.env.PORT || "5000";
 const port = Number(rawPort);
 
@@ -20,7 +23,7 @@ export default defineConfig({
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
+              root: path.resolve(__dirname, ".."),
             }),
           ),
           await import("@replit/vite-plugin-dev-banner").then((m) =>
@@ -31,14 +34,14 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "src"),
-      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+      "@": path.resolve(__dirname, "src"),
+      "@assets": path.resolve(__dirname, "..", "..", "attached_assets"),
     },
     dedupe: ["react", "react-dom"],
   },
-  root: path.resolve(import.meta.dirname),
+  root: path.resolve(__dirname),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
