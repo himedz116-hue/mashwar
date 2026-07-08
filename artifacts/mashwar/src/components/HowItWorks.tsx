@@ -40,13 +40,13 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-[#EFF7E8] relative overflow-hidden">
+    <section id="how-it-works" className="py-16 md:py-24 bg-[#EFF7E8] relative overflow-hidden">
       {/* Decorative circles */}
       <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full bg-[#99C169]/20 blur-[80px] translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[#679632]/15 blur-[70px] -translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <motion.span
             className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/15 text-[#679632] text-sm font-bold mb-4 border border-[#679632]/20"
             initial={{ opacity: 0 }}
@@ -56,7 +56,7 @@ export default function HowItWorks() {
             سهل وسريع
           </motion.span>
           <motion.h2
-            className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -66,7 +66,7 @@ export default function HowItWorks() {
             <span className="text-[#679632]"> للنقل</span>
           </motion.h2>
           <motion.p
-            className="text-[#000201]/55 text-lg max-w-xl mx-auto"
+            className="text-[#000201]/55 text-base md:text-lg max-w-xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -76,11 +76,42 @@ export default function HowItWorks() {
           </motion.p>
         </div>
 
-        <div className="relative">
-          {/* Connecting dashed line */}
-          <div className="hidden md:block absolute top-14 right-[20%] left-[20%] h-px border-t-2 border-dashed border-[#679632]/30 z-0" />
+        {/* ── Mobile: vertical timeline ── */}
+        <div className="md:hidden flex flex-col gap-0 relative">
+          {/* Vertical connecting line */}
+          <div className="absolute right-[38px] top-14 bottom-14 w-0.5 bg-gradient-to-b from-[#679632]/40 via-[#679632]/25 to-transparent pointer-events-none" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {steps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.15 }}
+              className="flex items-start gap-5 relative pb-8 last:pb-0"
+            >
+              {/* Step circle on the right (RTL) */}
+              <div className="flex flex-col items-center relative z-10 shrink-0">
+                <div className="w-[76px] h-[76px] rounded-2xl bg-white border-2 border-[#679632]/25 flex flex-col items-center justify-center shadow-lg shadow-[#679632]/10">
+                  <div className="mb-1">{step.icon}</div>
+                  <span className="text-[#679632] text-xs font-black">{step.num}</span>
+                </div>
+              </div>
+
+              {/* Text block */}
+              <div className="flex-1 pt-3 text-right">
+                <h3 className="text-xl font-heading font-black text-[#000201] mb-1.5">{step.title}</h3>
+                <p className="text-[#000201]/55 text-sm leading-relaxed">{step.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* ── Desktop: horizontal grid ── */}
+        <div className="hidden md:block relative">
+          {/* Horizontal dashed line */}
+          <div className="absolute top-14 right-[20%] left-[20%] h-px border-t-2 border-dashed border-[#679632]/30 z-0" />
+          <div className="grid grid-cols-3 gap-8">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
@@ -90,12 +121,10 @@ export default function HowItWorks() {
                 transition={{ duration: 0.6, delay: i * 0.15 }}
                 className="relative z-10 flex flex-col items-center text-center"
               >
-                {/* Step circle */}
                 <div className="w-28 h-28 rounded-full bg-white border-2 border-[#679632]/30 flex flex-col items-center justify-center mb-6 shadow-lg shadow-[#679632]/10">
                   <div className="mb-1">{step.icon}</div>
                   <span className="text-[#679632] text-sm font-bold">{step.num}</span>
                 </div>
-
                 <h3 className="text-2xl font-heading font-black text-[#000201] mb-3">{step.title}</h3>
                 <p className="text-[#000201]/55 leading-relaxed text-sm max-w-xs">{step.desc}</p>
               </motion.div>

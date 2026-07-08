@@ -66,9 +66,9 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 bg-[#F7FAF4] relative overflow-hidden">
+    <section id="features" className="py-16 md:py-24 bg-[#F7FAF4] relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-8 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <motion.span
             className="inline-block px-4 py-1.5 rounded-full bg-[#679632]/10 text-[#679632] text-sm font-bold mb-4"
             initial={{ opacity: 0 }}
@@ -78,7 +78,7 @@ export default function Features() {
             لماذا مشوار؟
           </motion.span>
           <motion.h2
-            className="text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-heading font-black text-[#000201] mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -88,7 +88,7 @@ export default function Features() {
             <span className="text-[#679632]"> لا مثيل لها</span>
           </motion.h2>
           <motion.p
-            className="text-[#000201]/55 text-lg max-w-xl mx-auto"
+            className="text-[#000201]/55 text-base md:text-lg max-w-xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -98,31 +98,51 @@ export default function Features() {
           </motion.p>
         </div>
 
-        {/* City buildings banner above the grid */}
+        {/* City buildings banner */}
         <motion.div
-          className="relative rounded-3xl overflow-hidden mb-12 bg-gradient-to-b from-[#EFF7E8] to-white border border-[#679632]/10 shadow-sm"
+          className="relative rounded-3xl overflow-hidden mb-8 md:mb-12 bg-gradient-to-b from-[#EFF7E8] to-white border border-[#679632]/10 shadow-sm"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <div className="relative min-h-[220px] md:min-h-[260px]">
-            {/* Text + Building grouped on the right */}
-            <div className="absolute right-0 inset-y-0 flex items-center gap-6 pr-8 md:pr-14">
-              {/* Building */}
-              <div className="flex-shrink-0 self-end pointer-events-none">
+          {/* Mobile layout: stacked */}
+          <div className="md:hidden p-6 text-right">
+            <div className="flex items-end justify-between gap-4">
+              <div className="flex-1">
+                <div className="text-2xl font-heading font-black text-[#679632] mb-2">نصل لكل مكان</div>
+                <p className="text-[#000201]/55 text-sm leading-relaxed">
+                  سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
+                </p>
+                {/* Mobile mini-stats */}
+                <div className="flex gap-4 mt-4">
+                  {[{ v: "+٢٠", l: "حي" }, { v: "٢٤/٧", l: "خدمة" }, { v: "١٥د", l: "وصول" }].map((s, i) => (
+                    <div key={i} className="text-center">
+                      <div className="text-base font-black text-[#679632]">{s.v}</div>
+                      <div className="text-[#000201]/40 text-[10px]">{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="shrink-0">
                 <img
                   src="/city-building-b.svg"
                   alt=""
                   aria-hidden="true"
-                  className="h-48 md:h-64 w-auto opacity-90"
+                  className="h-32 w-auto opacity-90"
                 />
               </div>
-              {/* Text */}
+            </div>
+          </div>
+
+          {/* Desktop layout: original */}
+          <div className="hidden md:block relative min-h-[220px] md:min-h-[260px]">
+            <div className="absolute right-0 inset-y-0 flex items-center gap-6 pr-8 md:pr-14">
+              <div className="flex-shrink-0 self-end pointer-events-none">
+                <img src="/city-building-b.svg" alt="" aria-hidden="true" className="h-48 md:h-64 w-auto opacity-90" />
+              </div>
               <div className="text-right">
-                <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">
-                  نصل لكل مكان
-                </div>
+                <div className="text-4xl md:text-5xl font-heading font-black text-[#679632] mb-3">نصل لكل مكان</div>
                 <p className="text-[#000201]/55 text-base md:text-lg leading-relaxed max-w-[260px]">
                   سائقو مشوار منتشرون في جميع أحياء المدينة، دائماً قريبون منك.
                 </p>
@@ -131,22 +151,23 @@ export default function Features() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Features grid — 2 cols on mobile, 3 on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: i * 0.07 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl p-7 border border-[#679632]/10 shadow-sm hover:shadow-lg hover:shadow-[#679632]/10 hover:border-[#679632]/25 transition-all duration-300 group"
+              className="bg-white rounded-2xl p-4 md:p-7 border border-[#679632]/10 shadow-sm hover:shadow-lg hover:shadow-[#679632]/10 hover:border-[#679632]/25 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#679632]/10 text-[#679632] flex items-center justify-center mb-5 group-hover:bg-[#679632] group-hover:text-white transition-all duration-300">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#679632]/10 text-[#679632] flex items-center justify-center mb-3 md:mb-5 group-hover:bg-[#679632] group-hover:text-white transition-all duration-300">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-heading font-black text-[#000201] mb-3">{feature.title}</h3>
-              <p className="text-[#000201]/55 leading-relaxed text-sm">{feature.desc}</p>
+              <h3 className="text-base md:text-xl font-heading font-black text-[#000201] mb-1.5 md:mb-3">{feature.title}</h3>
+              <p className="text-[#000201]/55 leading-relaxed text-xs md:text-sm">{feature.desc}</p>
             </motion.div>
           ))}
         </div>
