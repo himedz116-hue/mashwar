@@ -1,0 +1,15 @@
+{
+  "buildCommand": "pnpm -C artifacts/mashwar run build",
+  "outputDirectory": "artifacts/mashwar/dist/public",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
