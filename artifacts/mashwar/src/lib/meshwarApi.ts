@@ -93,10 +93,10 @@ export const editTerms = (terms: string) =>
   request("/api/admin/edit_terms", { method: "PUT", body: JSON.stringify({ terms }) });
 
 export const getMaxDistance = () =>
-  request<{ data: { max_distance: number } }>("/api/admin/setting/max-distance-cars");
-export const updateMaxDistance = (max_distance: number) =>
+  request<{ data: { inside_max_km: number | string } }>("/api/admin/setting/max-distance-cars");
+export const updateMaxDistance = (inside_max_km: number) =>
   request("/api/admin/setting/max-distance-cars", {
-    method: "PUT", body: JSON.stringify({ max_distance }),
+    method: "PUT", body: JSON.stringify({ inside_max_km }),
   });
 
 // ── Cities ────────────────────────────────────────────────

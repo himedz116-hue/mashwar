@@ -50,8 +50,8 @@ export default function AppSettings() {
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [toastPrivacy, setToastPrivacy] = useState("");
 
-  // Max distance
-  const [maxDist, setMaxDist] = useState<number | "">("");
+  // Max distance (inside city)
+  const [insideMaxKm, setInsideMaxKm] = useState<number | "">("");
   const [loadingDist, setLoadingDist] = useState(true);
   const [savingDist, setSavingDist] = useState(false);
   const [toastDist, setToastDist] = useState("");
@@ -93,7 +93,7 @@ export default function AppSettings() {
       .finally(() => setLoadingTerms(false));
 
     getMaxDistance()
-      .then((r) => setMaxDist(r.data?.max_distance ?? ""))
+      .then((r) => setInsideMaxKm(Number(r.data?.inside_max_km) || ""))
       .catch(() => setErrDist("تعذّر تحميل الإعداد"))
       .finally(() => setLoadingDist(false));
 
@@ -133,10 +133,10 @@ export default function AppSettings() {
 
   const saveMaxDist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!maxDist) return;
+    if (!insideMaxKm) return;
     setSavingDist(true); setErrDist("");
     try {
-      await updateMaxDistance(Number(maxDist));
+      await updateMaxDistance(Number(insideMaxKm));
       showToast(setToastDist, "✅ تم حفظ الإعداد بنجاح");
     } catch (e: unknown) {
       setErrDist(e instanceof Error ? e.message : String(e));
@@ -182,32 +182,48 @@ export default function AppSettings() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        {/* Max Distance */}
-        <SectionCard title="أقصى مسافة للبحث" description="نطاق البحث عن السائقين المتاحين" icon={MapPin}>
+        {/* Max Distance — matches mobile app "الحد الأقصى" screen */}
+        <SectionCard title="الحد الأقصى للمسافة" description="الحد الأقصى لمسافة داخل المدينة" icon={MapPin}>
           {loadingDist ? (
-            <div className="flex justify-center py-6"><div className="w-6 h-6 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-6">
+              <div className="w-6 h-6 border-2 border-[#679632] border-t-transparent rounded-full animate-spin" />
+            </div>
           ) : (
             <form onSubmit={saveMaxDist} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1.5">المسافة بالكيلومترات</label>
-                <div className="flex gap-2 items-center">
+              {/* Field row: label on right, "كيلو متر" unit badge on left — mirrors mobile screenshot */}
+              <div className="flex items-stretch border border-[#679632] rounded-xl overflow-hidden">
+                <div className="flex-1 px-4 py-4">
+                  <label className="block text-xs text-gray-400 mb-1">الحد الأقصى للمسافة داخل المدينة</label>
                   <input
-                    type="number" min={1} max={500} value={maxDist}
-                    onChange={(e) => setMaxDist(Number(e.target.value))}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-lg font-heading font-black text-[#1F4A10] outline-none focus:border-[#679632]"
+                    type="number" min={1} max={999} value={insideMaxKm}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setInsideMaxKm(v === "" ? "" : Number(v));
+                    }}
+                    className="w-full text-base font-bold text-[#1F4A10] outline-none bg-transparent"
+                    placeholder="40"
                   />
-                  <span className="text-gray-400 text-sm font-bold">كم</span>
+                </div>
+                <div className="flex items-center justify-center px-4 border-r border-[#679632] bg-[#F6FAF0]">
+                  <span className="text-sm font-bold text-[#1F4A10] whitespace-nowrap">كيلو متر</span>
                 </div>
               </div>
-              <div className="bg-[#F6FAF0] rounded-xl p-3 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-[#679632] mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-gray-500">يؤثر هذا على نطاق البحث عن السائقين المتاحين في التطبيق.</p>
-              </div>
-              {errDist && <p className="text-red-500 text-xs">{errDist}</p>}
-              {toastDist && <p className="text-green-600 text-xs font-bold">{toastDist}</p>}
-              <button type="submit" disabled={savingDist || !maxDist}
-                className="w-full py-3 rounded-xl bg-[#1F4A10] text-white font-bold text-sm hover:bg-[#2A5A14] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" /> {savingDist ? "جاري الحفظ..." : "حفظ الإعداد"}
+
+              {errDist && (
+                <div className="flex items-center gap-2 text-red-500 text-xs">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {errDist}
+                </div>
+              )}
+              {toastDist && <p className="text-green-600 text-xs font-bold text-center">{toastDist}</p>}
+
+              <button
+                type="submit"
+                disabled={savingDist || !insideMaxKm}
+                className="w-full py-3.5 rounded-xl bg-[#679632] text-white font-bold text-base hover:bg-[#4f7226] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              >
+                {savingDist ? (
+                  <><RefreshCw className="w-4 h-4 animate-spin" /> جاري الحفظ...</>
+                ) : "تغيير"}
               </button>
             </form>
           )}
