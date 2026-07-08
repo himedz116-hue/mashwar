@@ -8,13 +8,17 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 function Avatar({ name, avatar, online, size = 12 }: { name?: string; avatar?: string; online?: boolean; size?: number }) {
+  const px = size * 4;
   return (
     <div className="relative flex-shrink-0">
       {avatar
-        ? <img src={getImageUrl(avatar)} className={`w-${size} h-${size} rounded-2xl object-cover shadow-sm border-2 border-white`} />
+        ? <img src={getImageUrl(avatar)} className={`w-${size} h-${size} rounded-full object-cover shadow-md ring-2 ring-white`} />
         : (
-          <div className={`w-${size} h-${size} rounded-2xl bg-gradient-to-br from-[#D4EDA8] to-[#a8d060] flex items-center justify-center shadow-sm border-2 border-white`}>
-            <span className="font-black text-[#1F4A10]" style={{ fontSize: `${size * 0.45}px` }}>{(name ?? "؟")[0]}</span>
+          <div
+            className={`w-${size} h-${size} rounded-full flex items-center justify-center shadow-md ring-2 ring-white`}
+            style={{ background: "linear-gradient(135deg, #5aa526 0%, #1F4A10 100%)" }}
+          >
+            <span className="font-black text-white select-none" style={{ fontSize: `${px * 0.42}px`, lineHeight: 1 }}>{(name ?? "؟")[0]}</span>
           </div>
         )}
       {online !== undefined && (

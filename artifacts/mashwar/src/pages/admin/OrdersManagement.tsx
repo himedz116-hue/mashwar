@@ -39,10 +39,17 @@ function StatusBadge({ status }: { status?: string }) {
   );
 }
 
-function Avatar({ name, size = 10, colorClass = "bg-blue-100 text-blue-700" }: { name?: string; size?: number; colorClass?: string }) {
+function Avatar({ name, size = 10, colorClass = "" }: { name?: string; size?: number; colorClass?: string }) {
+  const px = size * 4;
+  const gradient = colorClass.includes("blue")
+    ? "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
+    : "linear-gradient(135deg, #5aa526 0%, #1F4A10 100%)";
   return (
-    <div className={`w-${size} h-${size} rounded-xl ${colorClass} flex items-center justify-center flex-shrink-0 shadow-sm border-2 border-white`}>
-      <span className="font-black text-lg">{(name ?? "?")[0]}</span>
+    <div
+      className={`w-${size} h-${size} rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-white shadow-md`}
+      style={{ background: gradient }}
+    >
+      <span className="font-black text-white select-none" style={{ fontSize: `${px * 0.42}px`, lineHeight: 1 }}>{(name ?? "?")[0]}</span>
     </div>
   );
 }

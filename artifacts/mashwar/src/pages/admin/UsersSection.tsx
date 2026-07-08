@@ -12,21 +12,24 @@ import {
 
 function Avatar({ name, avatar, size = 9 }: { name?: string; avatar?: string; size?: number }) {
   const [err, setErr] = useState(false);
-  const s = `w-${size} h-${size}`;
   const letter = ((name ?? "؟")[0] ?? "؟").toUpperCase();
   const showImg = avatar && !err && !avatar.toLowerCase().includes("placeholder");
+  const px = size * 4;
   if (showImg) {
     return (
       <img
         src={getImageUrl(avatar!)}
-        className={`${s} rounded-xl object-cover flex-shrink-0`}
+        className={`w-${size} h-${size} rounded-full object-cover ring-2 ring-white shadow-md flex-shrink-0`}
         onError={() => setErr(true)}
       />
     );
   }
   return (
-    <div className={`${s} rounded-xl bg-[#D4EDA8] flex items-center justify-center flex-shrink-0`}>
-      <span className="font-black text-[#1F4A10]" style={{ fontSize: `${size * 4}px` }}>{letter}</span>
+    <div
+      className={`w-${size} h-${size} rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-white shadow-md`}
+      style={{ background: "linear-gradient(135deg, #5aa526 0%, #1F4A10 100%)" }}
+    >
+      <span className="font-black text-white select-none" style={{ fontSize: `${px * 0.42}px`, lineHeight: 1 }}>{letter}</span>
     </div>
   );
 }
