@@ -6,6 +6,7 @@ import {
   Navigation, Navigation2, Check, Power, ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { OrdersMapDashboard } from "@/components/OrdersMapDashboard";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -340,6 +341,8 @@ export default function CitiesManagement() {
         )}
       </div>
 
+      {/* Orders Geographic Dashboard */}
+      <OrdersMapDashboard />
     </div>
   );
 }

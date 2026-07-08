@@ -3,7 +3,7 @@ import { getIntroductions, addIntroduction, editIntroduction, deleteIntroduction
 import {
   BookOpen, RefreshCw, Plus, Trash2, X, Check, Upload, Smartphone, Apple,
   Eye, CheckCircle2, AlertCircle, Layers, Users, Car, ChevronLeft, ChevronRight,
-  Image as ImageIcon, GripVertical, Sparkles
+  Image as ImageIcon, GripVertical, Sparkles, ArrowUp, ArrowDown, Play
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,9 +36,8 @@ const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transiti
 const itemVariants = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
 const TYPE_MAP: Record<number, { label: string; color: string; bg: string; icon: typeof Users }> = {
-  1: { label: "للعملاء", color: "#2563eb", bg: "#dbeafe", icon: Users },
-  2: { label: "للسائقين", color: "#16a34a", bg: "#dcfce7", icon: Car },
-  3: { label: "عام", color: "#7c3aed", bg: "#ede9fe", icon: Sparkles },
+  1: { label: "تطبيق العملاء", color: "#2563eb", bg: "#dbeafe", icon: Users },
+  2: { label: "تطبيق السائقين", color: "#16a34a", bg: "#dcfce7", icon: Car },
 };
 
 function Modal({ initial, onSave, onClose }: {
@@ -58,7 +57,7 @@ function Modal({ initial, onSave, onClose }: {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title) { setErr("العنوان مطلوب"); return; }
+    if (!form.description) { setErr("الوصف مطلوب"); return; }
     setSaving(true); setErr("");
     try { await onSave(form); onClose(); }
     catch (e: unknown) { setErr(e instanceof Error ? e.message : String(e)); }
@@ -118,31 +117,18 @@ function Modal({ initial, onSave, onClose }: {
           {/* Fields */}
           <div className="md:col-span-3 space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2">عنوان الشريحة *</label>
-              <input value={form.title ?? ""} onChange={(e) => set("title", e.target.value)} placeholder="مثال: مرحباً بك في مشوار"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#679632] focus:ring-4 focus:ring-[#D4EDA8]/30 transition-all bg-gray-50 focus:bg-white" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2">الوصف التوضيحي</label>
-              <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} rows={3}
-                placeholder="وصف مختصر يظهر أسفل العنوان..."
+              <label className="block text-xs font-bold text-gray-500 mb-2">الوصف التوضيحي *</label>
+              <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} rows={4}
+                placeholder="وصف مختصر يظهر في شريحة التعريف..."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#679632] focus:ring-4 focus:ring-[#D4EDA8]/30 transition-all bg-gray-50 focus:bg-white resize-none" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">النوع / الجمهور</label>
-                <select value={form.type ?? 1} onChange={(e) => set("type", Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#679632] bg-white">
-                  <option value={1}>👥 للعملاء (المستخدمين)</option>
-                  <option value={2}>🚛 للسائقين</option>
-                  <option value={3}>🌐 عام (الجميع)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">ترتيب العرض</label>
-                <input type="number" min="1" value={form.sort ?? ""} onChange={(e) => set("sort", Number(e.target.value))} placeholder="1"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#679632] focus:ring-4 focus:ring-[#D4EDA8]/30 transition-all bg-gray-50 focus:bg-white" />
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">النوع / الجمهور</label>
+              <select value={form.type ?? 1} onChange={(e) => set("type", Number(e.target.value))}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#679632] bg-white">
+                <option value={1}>👥 تطبيق المستخدمين (العملاء)</option>
+                <option value={2}>🚛 تطبيق السائقين</option>
+              </select>
             </div>
           </div>
         </div>
@@ -167,62 +153,77 @@ function Modal({ initial, onSave, onClose }: {
   );
 }
 
-function PhonePreview({ items }: { items: Introduction[] }) {
-  const [current, setCurrent] = useState(0);
-  const sorted = [...items].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
-  if (sorted.length === 0) return null;
-  const slide = sorted[current % sorted.length];
+function PhonePreview({ items, currentSlide, onSlideChange }: { items: Introduction[]; currentSlide: number; onSlideChange: (i: number) => void }) {
+  const total = items.length;
+  const safeIndex = total > 0 ? currentSlide % total : 0;
+  const slide = total > 0 ? items[safeIndex] : {
+    title: "",
+    description: "امكانية النقل أصبح سهل وبين ايدك",
+    image: ""
+  } as Introduction;
+
+  const handleSkip = () => {
+    if (total > 0) onSlideChange((safeIndex + 1) % total);
+  };
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-[2rem] p-1.5 shadow-2xl border border-gray-700 max-w-xs mx-auto">
-      <div className="bg-gray-800 rounded-[1.6rem] overflow-hidden relative" style={{ height: "480px" }}>
-        {/* Status bar */}
-        <div className="absolute top-0 w-full h-7 bg-black/40 flex justify-between items-center px-5 z-20">
-          <span className="text-[10px] text-white font-mono">9:41</span>
-          <div className="flex gap-1"><div className="w-3 h-2.5 bg-white/80 rounded-sm"></div></div>
+    <div className="relative max-w-[280px] mx-auto" dir="rtl" style={{ fontFamily: "'Cairo', sans-serif" }}>
+      {/* Phone shell */}
+      <div className="rounded-[40px] border-[6px] border-black bg-white overflow-hidden shadow-2xl" style={{ aspectRatio: "9/19.5" }}>
+        
+        {/* Notch */}
+        <div className="relative w-full flex justify-center pt-2 pb-1 bg-[#F5F5F0]">
+          <div className="w-[80px] h-[22px] bg-black rounded-full" />
         </div>
 
-        {/* Image */}
-        <div className="absolute inset-0">
-          {slide.image ? (
-            <img src={getImageUrl(slide.image)} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#1F4A10] to-[#679632] flex items-center justify-center">
-              <BookOpen className="w-16 h-16 text-white/30" />
+        {/* Screen */}
+        <div className="flex flex-col h-[calc(100%-30px)] bg-[#F5F5F0]">
+          
+          {/* Slide counter */}
+          {total > 0 && (
+            <div className="flex justify-center pt-2">
+              <span className="text-[9px] text-gray-400 font-semibold bg-white/70 px-2 py-0.5 rounded-full">{safeIndex + 1} / {total}</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        </div>
 
-        {/* Content */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-          <h4 className="font-heading font-black text-white text-xl mb-2 leading-tight">{slide.title}</h4>
-          {slide.description && <p className="text-white/70 text-xs leading-relaxed mb-4">{slide.description}</p>}
-
-          {/* Dots */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {sorted.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)} className={`h-2 rounded-full transition-all ${i === current % sorted.length ? "w-6 bg-[#D4EDA8]" : "w-2 bg-white/30"}`} />
-            ))}
+          {/* Image area */}
+          <div className="flex-1 flex items-center justify-center px-4 py-2 min-h-0">
+            {slide.image ? (
+              <img src={getImageUrl(slide.image)} className="max-w-full max-h-full object-contain" />
+            ) : (
+              <div className="text-center text-gray-300 flex flex-col items-center">
+                <ImageIcon className="w-10 h-10 mb-2 opacity-20" />
+                <span className="text-[9px] font-normal">أضف صورة</span>
+              </div>
+            )}
           </div>
 
-          {/* Fake button */}
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 text-center text-white text-sm font-bold">
-            {current < sorted.length - 1 ? "التالي →" : "ابدأ الآن"}
-          </div>
-        </div>
+          {/* Bottom white card - rounded top, flat bottom */}
+          <div className="bg-white rounded-t-[24px] px-5 pt-8 pb-5 flex flex-col items-center text-center shrink-0 relative" style={{ minHeight: "50%" }}>
+            {/* Top shadow overlay */}
+            <div className="absolute -top-[20px] left-0 right-0 h-[20px] pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.06), transparent)" }} />
+            
+            <p className="font-semibold text-[#374151] text-[13px] leading-[1.9] mb-2">
+              {slide.description || slide.title || "امكانية النقل أصبح سهل وبين ايدك"}
+            </p>
 
-        {/* Navigation */}
-        {sorted.length > 1 && (
-          <>
-            <button onClick={() => setCurrent(p => (p - 1 + sorted.length) % sorted.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center z-20 hover:bg-black/50 transition-colors">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button onClick={() => setCurrent(p => (p + 1) % sorted.length)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center z-20 hover:bg-black/50 transition-colors">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </>
-        )}
+            <div className="w-full flex flex-col items-center mt-4">
+              <div className="flex items-center justify-center gap-[4px] mb-3">
+                {total > 0 ? items.map((_, i) => (
+                  <button key={i} onClick={() => onSlideChange(i)} className={`h-[3px] rounded-full transition-all duration-300 cursor-pointer ${i === safeIndex ? "w-5 bg-[#679632]" : "w-[5px] bg-[#E5E7EB] hover:bg-[#CBD5E1]"}`} />
+                )) : (
+                  <>
+                    <div className="h-[3px] w-5 bg-[#679632] rounded-full" />
+                    <div className="h-[3px] w-[5px] bg-[#E5E7EB] rounded-full" />
+                    <div className="h-[3px] w-[5px] bg-[#E5E7EB] rounded-full" />
+                  </>
+                )}
+              </div>
+              <button onClick={handleSkip} className="text-[#679632] font-semibold text-[12px] hover:opacity-70 transition-opacity cursor-pointer">تخطي</button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );
@@ -234,13 +235,18 @@ export default function IntroductionsManagement() {
   const [error, setError] = useState("");
   const [modal, setModal] = useState<FormState | null>(null);
   const [toast, setToast] = useState({ msg: "", type: "success", show: false });
-  const [typeFilter, setTypeFilter] = useState<number | "all">("all");
+  const [activeTab, setActiveTab] = useState<1 | 2>(1);
+  const [previewSlide, setPreviewSlide] = useState(0);
 
   const load = () => {
     setLoading(true); setError("");
-    getIntroductions().then((r) => setItems(r.data ?? [])).catch((e) => setError(e.message)).finally(() => setLoading(false));
+    getIntroductions(activeTab)
+      .then((r) => setItems((r.data ?? []).map((i: any) => ({ ...i, type: activeTab }))))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => { load(); }, [activeTab]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type, show: true }); setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3500);
@@ -252,14 +258,20 @@ export default function IntroductionsManagement() {
     load();
   };
 
-  const handleDelete = async (uuid: string, title: string) => {
-    if (!confirm(`هل تريد حذف شريحة "${title}"؟`)) return;
+  const handleDelete = async (uuid: string, title?: string, description?: string) => {
+    const displayTitle = title || description?.substring(0, 15) || "هذه الشريحة";
+    if (!confirm(`هل تريد حذف ${displayTitle}؟`)) return;
     try { await deleteIntroduction(uuid); showToast("تم حذف الشريحة"); load(); }
     catch (e: unknown) { showToast(e instanceof Error ? e.message : String(e), "error"); }
   };
 
-  const filtered = items.filter((i) => typeFilter === "all" || i.type === typeFilter);
-  const previewItems = typeFilter === "all" ? items : filtered;
+  const filtered = items;
+  const previewItems = items;
+
+  const handlePreviewSlide = (intro: Introduction) => {
+    const idx = filtered.findIndex(s => s.uuid === intro.uuid);
+    if (idx >= 0) setPreviewSlide(idx);
+  };
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -285,7 +297,7 @@ export default function IntroductionsManagement() {
           <button onClick={load} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-[#1F4A10] text-sm font-bold hover:bg-gray-50 transition-all shadow-sm active:scale-95 disabled:opacity-50">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button onClick={() => setModal({ type: 1, sort: items.length + 1 })}
+          <button onClick={() => setModal({ type: activeTab, sort: filtered.length + 1 })}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-l from-[#1F4A10] to-[#2A6A14] text-white text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95">
             <Plus className="w-5 h-5" /> إضافة شريحة
           </button>
@@ -316,14 +328,20 @@ export default function IntroductionsManagement() {
       <div className="grid lg:grid-cols-12 gap-6">
         {/* Cards Grid */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Filter Tabs */}
-          <div className="flex gap-2 flex-wrap">
-            {([["all", "الكل", items.length], [1, "👥 العملاء", items.filter(i=>i.type===1).length], [2, "🚛 السائقين", items.filter(i=>i.type===2).length], [3, "🌐 عام", items.filter(i=>i.type===3).length]] as [number|"all", string, number][]).map(([v, l, count]) => (
-              <button key={String(v)} onClick={() => setTypeFilter(v)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${typeFilter === v ? "bg-white text-[#1F4A10] border-[#D4EDA8] shadow-sm" : "bg-white/50 text-gray-500 border-gray-200 hover:border-gray-300"}`}>
-                {l} <span className="text-[10px] opacity-70">({count})</span>
-              </button>
-            ))}
+          {/* Main Navigation Tabs */}
+          <div className="flex bg-gray-100 p-1.5 rounded-2xl relative mb-6">
+            {/* Sliding Background */}
+            <div className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out z-0"
+              style={{ transform: activeTab === 1 ? 'translateX(0)' : 'translateX(-100%)', right: '0.375rem' }} />
+              
+            <button onClick={() => setActiveTab(1)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-colors relative z-10 ${activeTab === 1 ? "text-[#1F4A10]" : "text-gray-500 hover:text-gray-700"}`}>
+              <Users className="w-5 h-5" /> تطبيق المستخدمين
+            </button>
+            <button onClick={() => setActiveTab(2)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-colors relative z-10 ${activeTab === 2 ? "text-[#1F4A10]" : "text-gray-500 hover:text-gray-700"}`}>
+              <Car className="w-5 h-5" /> تطبيق السائقين
+            </button>
           </div>
 
           {loading ? (
@@ -342,7 +360,7 @@ export default function IntroductionsManagement() {
             </div>
           ) : (
             <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid sm:grid-cols-2 gap-5">
-              {filtered.sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map((intro) => {
+              {filtered.map((intro, idx) => {
                 const typeInfo = TYPE_MAP[intro.type ?? 1] ?? TYPE_MAP[1];
                 return (
                   <motion.div variants={itemVariants} key={intro.uuid} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#D4EDA8] transition-all duration-300 group">
@@ -355,10 +373,9 @@ export default function IntroductionsManagement() {
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                      {/* Sort badge */}
+                      {/* Sequence badge */}
                       <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[#1F4A10] text-white px-2.5 py-1.5 rounded-xl shadow-lg">
-                        <GripVertical className="w-3.5 h-3.5 opacity-50" />
-                        <span className="text-xs font-black">#{intro.sort ?? "—"}</span>
+                        <span className="text-xs font-black">شريحة #{idx + 1}</span>
                       </div>
 
                       {/* Type badge */}
@@ -368,11 +385,15 @@ export default function IntroductionsManagement() {
 
                       {/* Hover Actions */}
                       <div className="absolute bottom-3 left-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">
+                        <button onClick={() => handlePreviewSlide(intro)}
+                          className="flex-1 py-2.5 rounded-xl bg-[#679632]/90 backdrop-blur-sm text-white text-xs font-bold hover:bg-[#679632] transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                          <Play className="w-3.5 h-3.5" /> عرض الشريحة
+                        </button>
                         <button onClick={() => setModal({ ...intro })}
                           className="flex-1 py-2.5 rounded-xl bg-white/90 backdrop-blur-sm text-[#1F4A10] text-xs font-bold hover:bg-white transition-colors shadow-sm flex items-center justify-center gap-1.5">
                           <Eye className="w-3.5 h-3.5" /> تعديل
                         </button>
-                        <button onClick={() => handleDelete(intro.uuid, intro.title)}
+                        <button onClick={() => handleDelete(intro.uuid, intro.title, intro.description)}
                           className="py-2.5 px-4 rounded-xl bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-1.5">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -381,8 +402,7 @@ export default function IntroductionsManagement() {
 
                     {/* Content */}
                     <div className="p-5">
-                      <h3 className="font-heading font-black text-[#1F4A10] text-lg leading-tight mb-1 line-clamp-1">{intro.title}</h3>
-                      {intro.description && <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{intro.description}</p>}
+                      <h3 className="font-heading font-black text-[#1F4A10] text-lg leading-tight mb-1 line-clamp-1">{intro.description || intro.title || "شريحة تعريفية"}</h3>
                       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
                         <Smartphone className="w-3.5 h-3.5 text-gray-400" />
                         <Apple className="w-3.5 h-3.5 text-gray-400" />
@@ -402,14 +422,7 @@ export default function IntroductionsManagement() {
             <h3 className="font-heading font-black text-gray-800 mb-4 text-center flex items-center justify-center gap-2">
               <Smartphone className="w-5 h-5 text-[#679632]" /> معاينة مباشرة
             </h3>
-            {previewItems.length > 0 ? (
-              <PhonePreview items={previewItems} />
-            ) : (
-              <div className="bg-gray-50 rounded-3xl p-12 text-center border border-gray-100">
-                <Smartphone className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-xs font-bold text-gray-500">أضف شرائح لمعاينتها</p>
-              </div>
-            )}
+            <PhonePreview items={previewItems} currentSlide={previewSlide} onSlideChange={setPreviewSlide} />
           </div>
         </div>
       </div>

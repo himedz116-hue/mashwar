@@ -62,7 +62,6 @@ const navGroups = [
   {
     label: "الدعم والتسويق",
     items: [
-      { id: "support",        label: "الدعم الفني والشكاوى",     icon: HeadphonesIcon,   component: Support },
       { id: "marketing",      label: "التسويق والعروض",          icon: Tag,              component: Marketing },
     ],
   },

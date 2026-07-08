@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { getOrders, showOrder, driverPayment, getImageUrl, type Order } from "@/lib/meshwarApi";
-import {
-  Package, RefreshCw, Search, X, Eye, DollarSign, MapPin,
-  Phone, Star, Car, User, Clock, CheckCircle, XCircle,
-  Calendar, CreditCard, Truck, AlertCircle, Smartphone, Apple,
-  Route as RouteIcon, Navigation, ReceiptText, Map as MapIcon,
-  Briefcase, ArrowDownUp, CheckCircle2, ChevronLeft, CalendarClock, ArrowLeft
+import { 
+  Package, Search, Eye, Filter, Download, MoreVertical, 
+  MapPin, Clock, Navigation, CheckCircle, XCircle, User, 
+  Phone, Truck, CreditCard, Car, Apple, Smartphone, AlertCircle,
+  Briefcase, ArrowDownUp, CheckCircle2, ChevronLeft, CalendarClock, ArrowLeft, Settings, DollarSign, RefreshCw, X, Map as MapIcon, ReceiptText,
+  Route as RouteIcon, Calendar
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RouteMap } from "@/components/admin/RouteMap";
 
 const STATUS_TABS = [
   { key: undefined, label: "جميع الطلبات",    color: "#1F4A10", bg: "#F6FAF0",  border: "border-[#D4EDA8]", icon: Package },
@@ -29,12 +30,19 @@ const PAYMENT_ICONS: Record<string, string> = {
   cash: "💵 كاش", card: "💳 بطاقة", wallet: "👛 محفظة", online: "🌐 أونلاين",
 };
 
-function StatusBadge({ status }: { status?: string }) {
-  const s = STATUS_LABELS[status ?? ""] ?? { label: status ?? "—", cls: "bg-gray-100 text-gray-500", icon: Package };
-  const Icon = s.icon;
+function StatusBadge({ status, statusName }: { status?: string, statusName?: string }) {
+  const s = STATUS_LABELS[status ?? ""];
+  if (s) {
+    const Icon = s.icon;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.cls}`}>
+        <Icon className="w-3 h-3" /> {s.label}
+      </span>
+    );
+  }
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.cls}`}>
-      <Icon className="w-3 h-3" /> {s.label}
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
+      <Package className="w-3 h-3" /> {statusName || status || "—"}
     </span>
   );
 }
@@ -52,6 +60,53 @@ function Avatar({ name, size = 10, colorClass = "" }: { name?: string; size?: nu
       <span className="font-black text-white select-none" style={{ fontSize: `${px * 0.42}px`, lineHeight: 1 }}>{(name ?? "?")[0]}</span>
     </div>
   );
+}
+
+function renderOS(osString: string | undefined) {
+  const osLower = (osString || "").toLowerCase();
+  
+  if (osLower.includes('ios') || osLower.includes('iphone') || osLower.includes('ipad') || osLower.includes('apple')) {
+    return (
+      <div className="flex gap-2">
+        <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-3 py-2 rounded-xl flex-1 border border-gray-200 opacity-50 grayscale">
+          <Smartphone className="w-4 h-4" /> أندرويد
+        </span>
+        <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-100 px-3 py-2 rounded-xl flex-1 border border-blue-200">
+          <Apple className="w-4 h-4" /> iOS
+        </span>
+      </div>
+    );
+  } else if (osLower.includes('android')) {
+    return (
+      <div className="flex gap-2">
+        <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-2 rounded-xl flex-1 border border-emerald-200">
+          <Smartphone className="w-4 h-4" /> أندرويد
+        </span>
+        <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-3 py-2 rounded-xl flex-1 border border-gray-200 opacity-50 grayscale">
+          <Apple className="w-4 h-4" /> iOS
+        </span>
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex gap-2">
+        <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-50 px-3 py-2 rounded-xl w-full border border-gray-200 border-dashed">
+          <Smartphone className="w-4 h-4 text-gray-400" /> نظام غير معروف
+        </span>
+      </div>
+    );
+  }
+}
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (R * c).toFixed(1);
 }
 
 function PayModal({ order, onClose, onPay }: {
@@ -109,9 +164,19 @@ function OrderFullModal({ uuid, onClose, onPay }: {
   const [loading, setLoading] = useState(true);
   const [showPay, setShowPay] = useState(false);
   const [tab, setTab] = useState<"info" | "parties" | "finance">("info");
+  const [carTypes, setCarTypes] = useState<any[]>([]);
 
   useEffect(() => {
-    showOrder(uuid).then((r) => setOrder(r.data)).finally(() => setLoading(false));
+    import("@/lib/meshwarApi").then(api => {
+      Promise.all([
+        api.showOrder(uuid),
+        api.getCarTypes().catch(() => ({ data: [] }))
+      ]).then(([orderRes, carTypesRes]) => {
+        setOrder(orderRes.data);
+        setCarTypes(carTypesRes.data);
+        fetch('http://localhost:9999', { method: 'POST', body: JSON.stringify(orderRes.data) }).catch(()=>null);
+      }).finally(() => setLoading(false));
+    });
   }, [uuid]);
 
   return (
@@ -140,7 +205,7 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                 <div className="relative flex items-start justify-between z-10">
                   <div>
                     <div className="flex items-center gap-3 mb-3">
-                      <StatusBadge status={order.status} />
+                      <StatusBadge status={order.status} statusName={(order as any).status_name} />
                       <span className="text-white/60 text-sm font-mono font-bold tracking-widest bg-black/20 px-2 py-0.5 rounded-lg">#{order.uuid.slice(0, 8).toUpperCase()}</span>
                     </div>
                     <div className="flex items-end gap-3">
@@ -195,25 +260,54 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                           <div className="flex-1 space-y-4">
                             <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:border-green-200 transition-colors">
                               <p className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wider">نقطة الانطلاق</p>
-                              <p className="font-bold text-[#1F4A10] text-base leading-relaxed">{order.from_address ?? "غير محدد"}</p>
+                              <p className="font-bold text-[#1F4A10] text-base leading-relaxed">{order.from_address || order.location_from || "غير محدد"}</p>
                             </div>
                             <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:border-red-200 transition-colors">
                               <p className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wider">نقطة الوصول</p>
-                              <p className="font-bold text-[#1F4A10] text-base leading-relaxed">{order.to_address ?? "غير محدد"}</p>
+                              <p className="font-bold text-[#1F4A10] text-base leading-relaxed">{order.to_address || order.location_to || "غير محدد"}</p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Interactive map placeholder */}
-                        <div className="mt-6 w-full h-32 bg-blue-50/50 rounded-xl border-2 border-dashed border-blue-200 flex items-center justify-center relative overflow-hidden">
-                          <MapIcon className="w-10 h-10 text-blue-200 absolute opacity-50" />
-                          <p className="text-blue-600/70 font-bold text-sm relative z-10 bg-white/80 px-4 py-2 rounded-lg">خريطة المسار التفاعلية</p>
+                        {/* Interactive map */}
+                        <div className="mt-6 w-full h-48 rounded-xl overflow-hidden relative">
+                          <RouteMap order={order} />
+                        </div>
+                      </div>
+
+                      {/* Trip & Additional Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-center relative overflow-hidden group hover:border-[#D4EDA8] transition-colors">
+                          <div className="absolute -right-4 -top-4 w-12 h-12 bg-blue-50 rounded-full group-hover:scale-150 transition-transform z-0"></div>
+                          <MapPin className="w-5 h-5 text-blue-500 mb-2 relative z-10" />
+                          <p className="text-[10px] font-bold text-gray-400 mb-1 relative z-10">المسافة المقدرة</p>
+                          <p className="font-black text-lg text-gray-800 relative z-10">
+                            {(order as any).distance || (order.lat_from && order.lng_from && order.lat_to && order.lng_to ? getDistance(Number(order.lat_from), Number(order.lng_from), Number(order.lat_to), Number(order.lng_to)) : "غير محدد")} <span className="text-xs font-normal text-gray-500">كم</span>
+                          </p>
+                        </div>
+                        
+                        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-center relative overflow-hidden group hover:border-[#D4EDA8] transition-colors">
+                          <div className="absolute -right-4 -top-4 w-12 h-12 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform z-0"></div>
+                          <Navigation className="w-5 h-5 text-emerald-500 mb-2 relative z-10" />
+                          <p className="text-[10px] font-bold text-gray-400 mb-1 relative z-10">نوع الرحلة</p>
+                          <p className="font-black text-lg text-gray-800 relative z-10">
+                            {(order as any).place_type_name || order.place_type || "غير محدد"}
+                          </p>
+                        </div>
+
+                        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-center relative overflow-hidden group hover:border-[#D4EDA8] transition-colors">
+                          <div className="absolute -right-4 -top-4 w-12 h-12 bg-purple-50 rounded-full group-hover:scale-150 transition-transform z-0"></div>
+                          <Settings className="w-5 h-5 text-purple-500 mb-2 relative z-10" />
+                          <p className="text-[10px] font-bold text-gray-400 mb-1 relative z-10">الفئة المطلوبة</p>
+                          <p className="font-black text-lg text-gray-800 relative z-10">
+                            {order.car_type?.name || carTypes.find(c => c.uuid === (order as any).car_price_uuid || c.uuid === (order as any).car_type_uuid)?.name || "غير محدد"}
+                          </p>
                         </div>
                       </div>
 
                       {/* Vehicle Details */}
                       <div>
-                        <h4 className="text-gray-800 font-bold text-sm mb-3 flex items-center gap-2"><Car className="w-4 h-4 text-gray-400"/> بيانات المركبة المطلوبة</h4>
+                        <h4 className="text-gray-800 font-bold text-sm mb-3 flex items-center gap-2"><Car className="w-4 h-4 text-gray-400"/> المركبة المنفذة للرحلة</h4>
                         <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-4">
                           {order.car_type?.icon ? (
                             <img src={getImageUrl(order.car_type.icon)} className="w-16 h-16 rounded-xl object-cover bg-white p-1 border border-gray-200 shadow-sm" />
@@ -223,10 +317,10 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                             </div>
                           )}
                           <div className="flex-1">
-                            <p className="font-black text-lg text-gray-800">{order.car_type?.name ?? "غير محدد"}</p>
+                            <p className="font-black text-lg text-gray-800">{order.driver?.car_name || "بانتظار السائق"}</p>
                             <div className="flex gap-4 mt-2">
-                              {order.car_type?.max_weight && <p className="text-xs text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-200">حمولة: {order.car_type.max_weight} كغ</p>}
-                              {order.car_type?.base_price && <p className="text-xs text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-200">سعر أساسي: {order.car_type.base_price} ر.س</p>}
+                              {order.car_type?.max_weight && <p className="text-xs text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-200">حمولة الفئة: {order.car_type.max_weight} كغ</p>}
+                              {order.car_type?.base_price && <p className="text-xs text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-200">السعر الأساسي: {order.car_type.base_price} ر.س</p>}
                             </div>
                           </div>
                         </div>
@@ -270,12 +364,7 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                               </div>
                               
                               <div className="flex gap-2">
-                                <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-2 rounded-xl flex-1 border border-emerald-200">
-                                  <Smartphone className="w-4 h-4" /> أندرويد
-                                </span>
-                                <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-3 py-2 rounded-xl flex-1 border border-gray-200 opacity-50 grayscale">
-                                  <Apple className="w-4 h-4" /> iOS
-                                </span>
+                                {renderOS(order.user?.device || order.user?.os_version)}
                               </div>
 
                               <a href={`tel:${order.user.phone}`}
@@ -312,12 +401,7 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                               </div>
                               
                               <div className="flex gap-2">
-                                <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-2 rounded-xl flex-1 border border-emerald-200">
-                                  <Smartphone className="w-4 h-4" /> أندرويد
-                                </span>
-                                <span className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-3 py-2 rounded-xl flex-1 border border-gray-200 opacity-50 grayscale">
-                                  <Apple className="w-4 h-4" /> iOS
-                                </span>
+                                {renderOS(order.driver?.device || order.driver?.os_version)}
                               </div>
 
                               <a href={`tel:${order.driver.phone}`}
@@ -365,12 +449,12 @@ function OrderFullModal({ uuid, onClose, onPay }: {
                           <div className="flex items-center justify-between py-3 border-b border-dashed border-gray-200">
                             <span className="text-sm font-bold text-gray-500">طريقة الدفع</span>
                             <span className="text-base font-black text-[#1F4A10] bg-[#F6FAF0] px-4 py-1.5 rounded-lg border border-[#D4EDA8]">
-                              {PAYMENT_ICONS[order.payment_method ?? ""] ?? "💰 غير محدد"} 
+                              {order.payment_method ? (PAYMENT_ICONS[order.payment_method] ?? `💰 ${order.payment_method}`) : (order.status === "paid" ? "🌐 أونلاين" : "💰 غير محدد")}
                             </span>
                           </div>
                           <div className="flex items-center justify-between py-3 border-b border-dashed border-gray-200">
                             <span className="text-sm font-bold text-gray-500">حالة الدفع</span>
-                            {order.status === "completed" ? (
+                            {(order.status === "completed" || order.status === "paid") ? (
                               <span className="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-lg flex items-center gap-1"><CheckCircle2 className="w-4 h-4"/> مدفوعة</span>
                             ) : (
                               <span className="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-lg flex items-center gap-1"><Clock className="w-4 h-4"/> معلقة</span>
@@ -425,9 +509,14 @@ export default function OrdersManagement() {
     setToast({ msg, ok }); setTimeout(() => setToast({ msg: "", ok: true }), 3000);
   };
 
-  const load = (type?: number) => {
+  const load = async (tab?: number) => {
     setLoading(true); setError("");
-    getOrders(type).then((r) => setOrders(r.data ?? [])).catch((e) => setError(e.message)).finally(() => setLoading(false));
+    try {
+      const res = await getOrders(tab ? { type: tab } : undefined);
+      setOrders(res.data);
+    }
+    catch (e: any) { setError(e.message || "فشل في تحميل الطلبات"); }
+    finally { setLoading(false); }
   };
   useEffect(() => { load(activeTab); }, [activeTab]);
 
@@ -439,7 +528,7 @@ export default function OrdersManagement() {
 
   const filtered = orders.filter((o) =>
     !search || o.user?.name?.includes(search) || o.driver?.name?.includes(search) ||
-    o.from_address?.includes(search) || o.uuid.includes(search)
+    o.from_address?.includes(search) || o.location_from?.includes(search) || o.uuid.includes(search)
   );
 
   const totalRevenue = filtered.filter((o) => o.status === "completed").reduce((sum, o) => sum + (o.price ?? 0), 0);
@@ -568,7 +657,7 @@ export default function OrdersManagement() {
                       {/* ID & Date */}
                       <div className="col-span-1 lg:col-span-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <StatusBadge status={o.status} />
+                          <StatusBadge status={o.status} statusName={(o as any).status_name} />
                           <span className="text-xs font-mono font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md">#{o.uuid.slice(0,6)}</span>
                         </div>
                         <p className="text-xs text-gray-500 font-bold flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> {o.created_at ? new Date(o.created_at).toLocaleDateString("ar-SA") : "—"}</p>
@@ -584,8 +673,8 @@ export default function OrdersManagement() {
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                           </div>
                           <div className="flex-1 space-y-2 min-w-0">
-                            <p className="text-xs font-bold text-gray-700 truncate" title={o.from_address ?? ""}>{o.from_address ?? "غير محدد"}</p>
-                            <p className="text-xs font-bold text-gray-700 truncate" title={o.to_address ?? ""}>{o.to_address ?? "غير محدد"}</p>
+                            <p className="text-xs font-bold text-gray-700 truncate" title={o.from_address || o.location_from || ""}>{o.from_address || o.location_from || "غير محدد"}</p>
+                            <p className="text-xs font-bold text-gray-700 truncate" title={o.to_address || o.location_to || ""}>{o.to_address || o.location_to || "غير محدد"}</p>
                           </div>
                         </div>
                       </div>
@@ -612,7 +701,7 @@ export default function OrdersManagement() {
                       <div className="col-span-1 lg:col-span-1 flex items-center justify-between lg:justify-end gap-4 lg:flex-col lg:items-end lg:border-r border-gray-100 lg:pr-6">
                         <div className="text-right">
                           <p className="font-heading font-black text-xl text-[#1F4A10] leading-none">{o.price ?? "0"} <span className="text-xs font-normal">ر.س</span></p>
-                          <p className="text-[11px] font-bold text-gray-500 mt-1">{PAYMENT_ICONS[o.payment_method ?? ""] ?? "💰 غير محدد"}</p>
+                          <p className="text-[11px] font-bold text-gray-500 mt-1">{o.payment_method ? (PAYMENT_ICONS[o.payment_method] ?? `💰 ${o.payment_method}`) : (o.status === "paid" ? "🌐 أونلاين" : "💰 غير محدد")}</p>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-[#F6FAF0] text-[#679632] flex items-center justify-center group-hover:bg-[#1F4A10] group-hover:text-white transition-colors border border-[#D4EDA8]">
                           <ArrowLeft className="w-5 h-5" />

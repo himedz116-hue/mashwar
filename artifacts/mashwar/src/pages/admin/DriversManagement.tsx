@@ -536,14 +536,7 @@ function DriverModal({ uuid, onClose, onAction, onBlock }: {
                                       <Hash className="w-3.5 h-3.5" /> لوحة السيارة
                                     </p>
                                     <p className="font-black text-gray-900 text-lg tracking-widest leading-tight">{plateNumber}</p>
-                                    <button
-                                      type="button"
-                                      onClick={doLookup}
-                                      disabled={plateNumber === "—"}
-                                      className="mt-2 text-[10px] font-bold text-[#679632] flex items-center gap-1 hover:underline disabled:opacity-40 disabled:no-underline"
-                                    >
-                                      <SearchIcon className="w-3 h-3" /> استعلام سعودي
-                                    </button>
+
                                   </div>
 
                                   {/* 3. رخصة القيادة */}

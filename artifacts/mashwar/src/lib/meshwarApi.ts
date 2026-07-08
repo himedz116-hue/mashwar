@@ -520,6 +520,7 @@ export interface CarType {
   max_weight?: number;
   description?: string;
   created_at?: string;
+  car_name?: string;
 }
 export interface Introduction {
   uuid: string;
@@ -567,6 +568,16 @@ export interface Order {
   distance?: number;
   from_address?: string;
   to_address?: string;
+  location_from?: string;
+  location_to?: string;
+  lat_from?: string | number;
+  lng_from?: string | number;
+  lat_to?: string | number;
+  lng_to?: string | number;
+  place_type?: string;
+  place_type_name?: string;
+  car_price_name?: string;
+  points?: Array<{lat: string|number, lng: string|number}>;
   user?: User;
   driver?: Driver;
   car_type?: CarType;
